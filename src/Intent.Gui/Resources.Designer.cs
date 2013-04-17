@@ -63,16 +63,6 @@ namespace Intent.Gui {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ActivityIndicator {
-            get {
-                object obj = ResourceManager.GetObject("ActivityIndicator", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap ActivityIndicator_Error {
             get {
                 object obj = ResourceManager.GetObject("ActivityIndicator_Error", resourceCulture);
@@ -183,9 +173,29 @@ namespace Intent.Gui {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Controls_Play_Disabled {
+            get {
+                object obj = ResourceManager.GetObject("Controls_Play_Disabled", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Controls_Stop {
             get {
                 object obj = ResourceManager.GetObject("Controls_Stop", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Controls_Stop_Disabled {
+            get {
+                object obj = ResourceManager.GetObject("Controls_Stop_Disabled", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

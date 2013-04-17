@@ -146,30 +146,29 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Icons\File-New.png" />
+    <None Include="Resources\Images\File-New.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\Icons\Build-All.png" />
-    <Content Include="Resources\Icons\Build-Current.png" />
-    <Content Include="Resources\Icons\File-Save.png" />
-    <Content Include="Resources\Icons\File-SaveAs.png" />
-    <Content Include="Resources\Interface\ActivityIndicator-Error.png" />
-    <Content Include="Resources\Interface\ActivityIndicator-NoActivity.png" />
-    <Content Include="Resources\Interface\ActivityIndicator-Receive.png" />
-    <Content Include="Resources\Interface\ActivityIndicator-Send.png" />
-    <Content Include="Resources\Interface\ActivityIndicator.png" />
-    <Content Include="Resources\Icons\AddItem.png" />
-    <Content Include="Resources\Icons\AppIconDark.png" />
-    <Content Include="Resources\Icons\AppIconLight.png" />
-    <Content Include="Resources\Icons\Console-Clear.png" />
-    <Content Include="Resources\Icons\Controls-Play-Disabled.png" />
-    <Content Include="Resources\Icons\Controls-Play.png" />
-    <Content Include="Resources\Icons\Controls-Stop-Disabled.png" />
-    <Content Include="Resources\Icons\Controls-Stop.png" />
-    <Content Include="Resources\Icons\DeleteItem.png" />
-    <Content Include="Resources\Icons\File-Open.png" />
-    <Content Include="Resources\Icons\Window-Maximize.png" />
-    <Content Include="Resources\Interface\Crosshatch.png" />
+    <Content Include="Resources\Images\Build-All.png" />
+    <Content Include="Resources\Images\Build-Current.png" />
+    <Content Include="Resources\Images\File-Save.png" />
+    <Content Include="Resources\Images\File-SaveAs.png" />
+    <Content Include="Resources\Images\ActivityIndicator-Error.png" />
+    <Content Include="Resources\Images\ActivityIndicator-NoActivity.png" />
+    <Content Include="Resources\Images\ActivityIndicator-Receive.png" />
+    <Content Include="Resources\Images\ActivityIndicator-Send.png" />
+    <Content Include="Resources\Images\AddItem.png" />
+    <Content Include="Resources\Images\AppIconDark.png" />
+    <Content Include="Resources\Images\AppIconLight.png" />
+    <Content Include="Resources\Images\Console-Clear.png" />
+    <Content Include="Resources\Images\Controls-Play-Disabled.png" />
+    <Content Include="Resources\Images\Controls-Play.png" />
+    <Content Include="Resources\Images\Controls-Stop-Disabled.png" />
+    <Content Include="Resources\Images\Controls-Stop.png" />
+    <Content Include="Resources\Images\DeleteItem.png" />
+    <Content Include="Resources\Images\File-Open.png" />
+    <Content Include="Resources\Images\Window-Maximize.png" />
+    <Content Include="Resources\Images\Crosshatch.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Intent.Core\Intent.Core.csproj">
