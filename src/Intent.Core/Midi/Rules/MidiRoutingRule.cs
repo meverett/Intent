@@ -51,7 +51,7 @@ namespace Intent.Midi
         /// <summary>
         /// Gets the JavaScript object that generated the routing rule.
         /// </summary>
-        public CommonObject JavaScript { get; set; }
+        public CommonObject ScriptObject { get; set; }
 
         #endregion Properties
 
@@ -268,7 +268,7 @@ namespace Intent.Midi
             #endregion Create MIDI value byte 2 rule
 
             // Store extracted values
-            this.JavaScript = js;
+            this.ScriptObject = js;
             this.Name = name;
             this.OscAddress = oscAddress;
             this.OscArguments = oscArguments;
