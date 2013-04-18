@@ -44,8 +44,7 @@
             this.stopButton = new System.Windows.Forms.Button();
             this.startButton = new System.Windows.Forms.Button();
             this.clearConsoleButton = new System.Windows.Forms.Button();
-            this.buildCurrentButton = new System.Windows.Forms.Button();
-            this.buildAllButton = new System.Windows.Forms.Button();
+            this.buildScriptsButton = new System.Windows.Forms.Button();
             this.newButton = new System.Windows.Forms.Button();
             this.openButton = new System.Windows.Forms.Button();
             this.saveButton = new System.Windows.Forms.Button();
@@ -258,7 +257,7 @@
             this.clearConsoleButton.Font = new System.Drawing.Font("Verdana", 7F);
             this.clearConsoleButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
             this.clearConsoleButton.Image = global::Intent.Gui.Resources.Console_Clear;
-            this.clearConsoleButton.Location = new System.Drawing.Point(414, 21);
+            this.clearConsoleButton.Location = new System.Drawing.Point(385, 21);
             this.clearConsoleButton.Name = "clearConsoleButton";
             this.clearConsoleButton.Size = new System.Drawing.Size(23, 23);
             this.clearConsoleButton.TabIndex = 7;
@@ -267,40 +266,23 @@
             this.clearConsoleButton.MouseEnter += new System.EventHandler(this.menuButton_MouseEnter);
             this.clearConsoleButton.MouseLeave += new System.EventHandler(this.menuButton_MouseLeave);
             // 
-            // buildCurrentButton
+            // buildScriptsButton
             // 
-            this.buildCurrentButton.BackColor = System.Drawing.Color.Transparent;
-            this.buildCurrentButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
-            this.buildCurrentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buildCurrentButton.Font = new System.Drawing.Font("Verdana", 7F);
-            this.buildCurrentButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.buildCurrentButton.Image = global::Intent.Gui.Resources.Build_Current;
-            this.buildCurrentButton.Location = new System.Drawing.Point(356, 21);
-            this.buildCurrentButton.Name = "buildCurrentButton";
-            this.buildCurrentButton.Size = new System.Drawing.Size(23, 23);
-            this.buildCurrentButton.TabIndex = 7;
-            this.buildCurrentButton.UseVisualStyleBackColor = false;
-            this.buildCurrentButton.Click += new System.EventHandler(this.buildCurrentButton_Click);
-            this.buildCurrentButton.MouseEnter += new System.EventHandler(this.menuButton_MouseEnter);
-            this.buildCurrentButton.MouseLeave += new System.EventHandler(this.menuButton_MouseLeave);
-            // 
-            // buildAllButton
-            // 
-            this.buildAllButton.BackColor = System.Drawing.Color.Transparent;
-            this.buildAllButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
-            this.buildAllButton.Enabled = false;
-            this.buildAllButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buildAllButton.Font = new System.Drawing.Font("Verdana", 7F);
-            this.buildAllButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.buildAllButton.Image = global::Intent.Gui.Resources.Build_All;
-            this.buildAllButton.Location = new System.Drawing.Point(385, 21);
-            this.buildAllButton.Name = "buildAllButton";
-            this.buildAllButton.Size = new System.Drawing.Size(23, 23);
-            this.buildAllButton.TabIndex = 7;
-            this.buildAllButton.UseVisualStyleBackColor = false;
-            this.buildAllButton.Click += new System.EventHandler(this.buildAllButton_Click);
-            this.buildAllButton.MouseEnter += new System.EventHandler(this.menuButton_MouseEnter);
-            this.buildAllButton.MouseLeave += new System.EventHandler(this.menuButton_MouseLeave);
+            this.buildScriptsButton.BackColor = System.Drawing.Color.Transparent;
+            this.buildScriptsButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.buildScriptsButton.Enabled = false;
+            this.buildScriptsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buildScriptsButton.Font = new System.Drawing.Font("Verdana", 7F);
+            this.buildScriptsButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.buildScriptsButton.Image = global::Intent.Gui.Resources.Build_All;
+            this.buildScriptsButton.Location = new System.Drawing.Point(356, 21);
+            this.buildScriptsButton.Name = "buildScriptsButton";
+            this.buildScriptsButton.Size = new System.Drawing.Size(23, 23);
+            this.buildScriptsButton.TabIndex = 7;
+            this.buildScriptsButton.UseVisualStyleBackColor = false;
+            this.buildScriptsButton.Click += new System.EventHandler(this.buildScriptsButton_Click);
+            this.buildScriptsButton.MouseEnter += new System.EventHandler(this.menuButton_MouseEnter);
+            this.buildScriptsButton.MouseLeave += new System.EventHandler(this.menuButton_MouseLeave);
             // 
             // newButton
             // 
@@ -392,8 +374,7 @@
             this.Controls.Add(this.closeButton);
             this.Controls.Add(this.maximizeButton);
             this.Controls.Add(this.activePanel);
-            this.Controls.Add(this.buildAllButton);
-            this.Controls.Add(this.buildCurrentButton);
+            this.Controls.Add(this.buildScriptsButton);
             this.Controls.Add(this.clearConsoleButton);
             this.Controls.Add(this.stopButton);
             this.Controls.Add(this.saveAsButton);
@@ -437,8 +418,7 @@
         private System.Windows.Forms.Button startButton;
         private System.Windows.Forms.Button stopButton;
         private System.Windows.Forms.Button clearConsoleButton;
-        private System.Windows.Forms.Button buildCurrentButton;
-        private System.Windows.Forms.Button buildAllButton;
+        private System.Windows.Forms.Button buildScriptsButton;
         private System.Windows.Forms.Button newButton;
         private System.Windows.Forms.Button openButton;
         private System.Windows.Forms.Button saveButton;

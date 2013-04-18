@@ -89,7 +89,7 @@ namespace Intent.Gui
 
             // Register to messaging events that would create a dirty document
             IntentMessaging.AdaptersUpdated += (s, eArgs) => { isDirty = true; };
-            editor.ScriptChanged += (s, eArgs) => { isDirty = true; };
+            editor.ScriptChanged += (s, eArgs) => { isDirty = true; buildScriptsButton.Enabled = true; };
         }
 
         #region Custom Mouse Handling
@@ -279,27 +279,28 @@ namespace Intent.Gui
 
         #region Script
 
-        // Build Current Script -> Click
-        private void buildCurrentButton_Click(object sender, EventArgs e)
+        // Build All Scripts -> Click
+        private void buildScriptsButton_Click(object sender, EventArgs e)
         {
-            var adapter = editor.SelectedAdapter;
-            if (adapter == null) return;
-
             try
             {
-                // Get the current script text
-                adapter.ApplySettings(editor.Script);
+                foreach (MessageAdapter adapter in IntentMessaging.ActiveAdapters)
+                {
+                    // Get the current script text
+                    adapter.ApplySettings(editor.GetAdapterScript(adapter));
+                }
+
+                buildScriptsButton.Enabled = false;
+            }
+            catch (IronJS.Error.CompileError ce)
+            {
+                IntentMessaging.WriteLine("! Compile Error:");
+                IntentMessaging.WriteLine((object)ce.SourceCode);
             }
             catch (Exception ex)
             {
                 IntentMessaging.WriteLine(ex);
             }
-        }
-
-        // Build All Scripts -> Click
-        private void buildAllButton_Click(object sender, EventArgs e)
-        {
-
         }
 
         #endregion Script
@@ -355,11 +356,7 @@ namespace Intent.Gui
             {
                 status.Text = "stop message routing";
             }
-            else if (button.Name == buildCurrentButton.Name)
-            {
-                status.Text = "build current message adapter script";
-            }
-            else if (button.Name == buildAllButton.Name)
+            else if (button.Name == buildScriptsButton.Name)
             {
                 status.Text = "build all message adapter scripts";
             }
