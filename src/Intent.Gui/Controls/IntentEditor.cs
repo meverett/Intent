@@ -27,11 +27,12 @@ namespace Intent.Gui
 
         #region Text Editor Styles & Regex
 
-        TextStyle functionStyle = new TextStyle(Brushes.Magenta, null, FontStyle.Regular);
+        TextStyle functionStyle = new TextStyle(new SolidBrush(Color.FromArgb(255, 126, 202, 244)), null, FontStyle.Regular);
         TextStyle BlueBoldStyle = new TextStyle(Brushes.Pink, null, FontStyle.Bold);
         TextStyle BoldStyle = new TextStyle(null, null, FontStyle.Underline | FontStyle.Bold);
         TextStyle GrayStyle = new TextStyle(Brushes.Pink, null, FontStyle.Regular);
-        TextStyle constantStyle = new TextStyle(Brushes.Lime, null, FontStyle.Regular);
+        //TextStyle constantStyle = new TextStyle(Brushes.Lime, null, FontStyle.Regular);
+        TextStyle constantStyle = new TextStyle(new SolidBrush(Color.FromArgb(255, 233, 213, 115)), null, FontStyle.Regular);
         TextStyle commentsStyle = new TextStyle(Brushes.Orange, null, FontStyle.Italic);
         TextStyle stringStyle = new TextStyle(new SolidBrush(Color.FromArgb(255, 0, 151, 251)), null, FontStyle.Regular);
         TextStyle RedStyle = new TextStyle(Brushes.Pink, null, FontStyle.Regular);
