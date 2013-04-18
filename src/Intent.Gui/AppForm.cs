@@ -396,15 +396,18 @@ namespace Intent.Gui
         void FileSave()
         {
             // If we don't already have a saved file path, get one
-            if (string.IsNullOrEmpty(saveFileDialog.FileName))
+            if (string.IsNullOrEmpty(saveFileDialog.FileName) || !File.Exists(saveFileDialog.FileName))
                 if (DialogResult.OK != saveFileDialog.ShowDialog()) return;
 
+            Console.WriteLine(saveFileDialog.FileName);
             XmlWriterSettings settings = new XmlWriterSettings() { Indent = true };
 
             using (XmlWriter xw = XmlWriter.Create(saveFileDialog.FileName, settings))
             {
                 SessionToXml().WriteTo(xw);
             }
+
+            isDirty = false;
         }
 
         // Saves the current session as a new file
@@ -419,6 +422,8 @@ namespace Intent.Gui
             {
                 SessionToXml().WriteTo(xw);
             }
+
+            isDirty = false;
         }
 
         // Opens a file/session for editing and playback
@@ -472,7 +477,6 @@ namespace Intent.Gui
             }
             catch (Exception ex)
             {
-                throw ex;
                 MessageBox.Show(
                     "There was an error opening the file:\n" + openFileDialog.FileName, 
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error

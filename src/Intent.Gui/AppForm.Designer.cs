@@ -223,7 +223,7 @@
             this.stopButton.Font = new System.Drawing.Font("Verdana", 7F);
             this.stopButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
             this.stopButton.Image = global::Intent.Gui.Resources.Controls_Stop;
-            this.stopButton.Location = new System.Drawing.Point(327, 21);
+            this.stopButton.Location = new System.Drawing.Point(335, 21);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(23, 23);
             this.stopButton.TabIndex = 7;
@@ -240,7 +240,7 @@
             this.startButton.Font = new System.Drawing.Font("Verdana", 7F);
             this.startButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
             this.startButton.Image = global::Intent.Gui.Resources.Controls_Play;
-            this.startButton.Location = new System.Drawing.Point(298, 21);
+            this.startButton.Location = new System.Drawing.Point(306, 21);
             this.startButton.Name = "startButton";
             this.startButton.Size = new System.Drawing.Size(23, 23);
             this.startButton.TabIndex = 6;
@@ -257,7 +257,7 @@
             this.clearConsoleButton.Font = new System.Drawing.Font("Verdana", 7F);
             this.clearConsoleButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
             this.clearConsoleButton.Image = global::Intent.Gui.Resources.Console_Clear;
-            this.clearConsoleButton.Location = new System.Drawing.Point(385, 21);
+            this.clearConsoleButton.Location = new System.Drawing.Point(393, 21);
             this.clearConsoleButton.Name = "clearConsoleButton";
             this.clearConsoleButton.Size = new System.Drawing.Size(23, 23);
             this.clearConsoleButton.TabIndex = 7;
@@ -275,7 +275,7 @@
             this.buildScriptsButton.Font = new System.Drawing.Font("Verdana", 7F);
             this.buildScriptsButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
             this.buildScriptsButton.Image = global::Intent.Gui.Resources.Build_All;
-            this.buildScriptsButton.Location = new System.Drawing.Point(356, 21);
+            this.buildScriptsButton.Location = new System.Drawing.Point(364, 21);
             this.buildScriptsButton.Name = "buildScriptsButton";
             this.buildScriptsButton.Size = new System.Drawing.Size(23, 23);
             this.buildScriptsButton.TabIndex = 7;
