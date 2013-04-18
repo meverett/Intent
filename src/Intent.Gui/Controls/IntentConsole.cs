@@ -93,9 +93,9 @@ namespace Intent.Gui
 
                         // Clear the updates
                         consoleUpdates.Clear();
-
+                        
                         // Scroll to the latest
-                        console.ScrollToCaret();
+                        console.GoEnd();
                     }
                 }
             };

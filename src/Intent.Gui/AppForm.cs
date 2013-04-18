@@ -86,6 +86,10 @@ namespace Intent.Gui
             activePanel.Controls.Add(editor);
             editor.Dock = DockStyle.Fill;
             editor.Visible = true;
+
+            // Register to messaging events that would create a dirty document
+            IntentMessaging.AdaptersUpdated += (s, eArgs) => { isDirty = true; };
+            editor.ScriptChanged += (s, eArgs) => { isDirty = true; };
         }
 
         #region Custom Mouse Handling
@@ -212,26 +216,25 @@ namespace Intent.Gui
         // File -> New
         private void newButton_Click(object sender, EventArgs e)
         {
-            // Stop and clear current adapter list
-            Clear();
+            FileNew();
         }
 
         // File -> Open
         private void openButton_Click(object sender, EventArgs e)
         {
-            Open();
+            FileOpen();
         }
 
         // File -> Save
         private void saveButton_Click(object sender, EventArgs e)
         {
-            Save();
+            FileSave();
         }
 
         // File -> Save As
         private void saveAsButton_Click(object sender, EventArgs e)
         {
-            SaveAs();
+            FileSaveAs();
         }
 
         #endregion File
@@ -322,7 +325,6 @@ namespace Intent.Gui
 
             if (button.Name == editorButton.Name)
             {
-                Console.WriteLine(button.Name);
                 status.Text = "show the editor";
             }
             else if (button.Name == consoleButton.Name)
@@ -383,8 +385,18 @@ namespace Intent.Gui
 
         #region File Operations
 
+        // Creates a new session/file
+        void FileNew()
+        {
+            // Don't blow away changes
+            if (!ConfirmIsDirty()) return;
+
+            // Stop and clear current adapter list
+            Clear();
+        }
+
         // Saves the current session
-        void Save()
+        void FileSave()
         {
             // If we don't already have a saved file path, get one
             if (string.IsNullOrEmpty(saveFileDialog.FileName))
@@ -399,7 +411,7 @@ namespace Intent.Gui
         }
 
         // Saves the current session as a new file
-        void SaveAs()
+        void FileSaveAs()
         {
             // Get the save file path
             if (DialogResult.OK != saveFileDialog.ShowDialog()) return;
@@ -413,8 +425,11 @@ namespace Intent.Gui
         }
 
         // Opens a file/session for editing and playback
-        void Open()
+        void FileOpen()
         {
+            // Don't blow away changes
+            if (!ConfirmIsDirty()) return;
+
             if (DialogResult.OK != openFileDialog.ShowDialog()) return;
 
             // Read in the document
@@ -455,14 +470,25 @@ namespace Intent.Gui
 
                 // If the message adapter was currently playing, resume
                 if (stopButton.Enabled) IntentMessaging.Start();
+
+                isDirty = false;
             }
             catch (Exception ex)
             {
+                throw ex;
                 MessageBox.Show(
                     "There was an error opening the file:\n" + openFileDialog.FileName, 
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error
                 );
             }
+        }
+
+        // Used to confirm a potentially data destroying action between saved changes
+        bool ConfirmIsDirty()
+        {
+            var question = "You have unsaved changes. Do you wish to continue and lose your changes?";
+            if (isDirty && MessageBox.Show(question, "Confirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.Cancel) return false;
+            return true;
         }
 
         // Converts the current session's data into an XML document
@@ -505,6 +531,7 @@ namespace Intent.Gui
             editor.Clear();
             console.Clear();
             IntentMessaging.ClearAdapters();
+            isDirty = false;
         }
 
         #endregion File Operations

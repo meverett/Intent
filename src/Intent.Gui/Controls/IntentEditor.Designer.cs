@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.leftPanel = new System.Windows.Forms.Panel();
+            this.textEditor = new FastColoredTextBoxNS.FastColoredTextBox();
             this.listOfAdapters = new Intent.Gui.MessageAdapterListView();
-            this.textEditor = new System.Windows.Forms.RichTextBox();
             this.leftPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -44,6 +44,31 @@
             this.leftPanel.Size = new System.Drawing.Size(300, 476);
             this.leftPanel.TabIndex = 1;
             // 
+            // textEditor
+            // 
+            this.textEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textEditor.AutoScrollMinSize = new System.Drawing.Size(27, 15);
+            this.textEditor.BackBrush = null;
+            this.textEditor.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(27)))), ((int)(((byte)(27)))), ((int)(((byte)(28)))));
+            this.textEditor.CaretColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.textEditor.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.textEditor.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
+            this.textEditor.FoldingIndicatorColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(196)))));
+            this.textEditor.Font = new System.Drawing.Font("Courier New", 10.5F);
+            this.textEditor.ForeColor = System.Drawing.Color.Silver;
+            this.textEditor.IndentBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(36)))), ((int)(((byte)(37)))));
+            this.textEditor.LineNumberColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(151)))), ((int)(((byte)(251)))));
+            this.textEditor.Location = new System.Drawing.Point(306, 3);
+            this.textEditor.Name = "textEditor";
+            this.textEditor.Paddings = new System.Windows.Forms.Padding(0);
+            this.textEditor.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(255)))), ((int)(((byte)(165)))), ((int)(((byte)(0)))));
+            this.textEditor.ServiceLinesColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.textEditor.Size = new System.Drawing.Size(565, 470);
+            this.textEditor.TabIndex = 9;
+            this.textEditor.TextChanged += new System.EventHandler<FastColoredTextBoxNS.TextChangedEventArgs>(this.textEditor_TextChanged);
+            // 
             // listOfAdapters
             // 
             this.listOfAdapters.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
@@ -54,24 +79,6 @@
             this.listOfAdapters.Name = "listOfAdapters";
             this.listOfAdapters.Size = new System.Drawing.Size(300, 476);
             this.listOfAdapters.TabIndex = 0;
-            // 
-            // textEditor
-            // 
-            this.textEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textEditor.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.textEditor.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.textEditor.Font = new System.Drawing.Font("Verdana", 8F);
-            this.textEditor.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(151)))), ((int)(((byte)(251)))));
-            this.textEditor.Location = new System.Drawing.Point(311, 8);
-            this.textEditor.Margin = new System.Windows.Forms.Padding(8);
-            this.textEditor.Name = "textEditor";
-            this.textEditor.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this.textEditor.Size = new System.Drawing.Size(547, 452);
-            this.textEditor.TabIndex = 2;
-            this.textEditor.TabStop = false;
-            this.textEditor.Text = "";
             // 
             // IntentEditor
             // 
@@ -94,6 +101,6 @@
 
         private System.Windows.Forms.Panel leftPanel;
         private MessageAdapterListView listOfAdapters;
-        private System.Windows.Forms.RichTextBox textEditor;
+        private FastColoredTextBoxNS.FastColoredTextBox textEditor;
     }
 }

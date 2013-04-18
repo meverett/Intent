@@ -28,23 +28,29 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.console = new System.Windows.Forms.RichTextBox();
+            this.console = new FastColoredTextBoxNS.FastColoredTextBox();
             this.SuspendLayout();
             // 
             // console
             // 
+            this.console.AutoScrollMinSize = new System.Drawing.Size(2, 15);
+            this.console.BackBrush = null;
             this.console.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(27)))), ((int)(((byte)(27)))), ((int)(((byte)(28)))));
-            this.console.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.console.CaretColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(151)))), ((int)(((byte)(251)))));
+            this.console.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.console.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
             this.console.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.console.Font = new System.Drawing.Font("Verdana", 8F);
             this.console.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(151)))), ((int)(((byte)(251)))));
+            this.console.IndentBackColor = System.Drawing.Color.Transparent;
             this.console.Location = new System.Drawing.Point(0, 0);
             this.console.Name = "console";
+            this.console.Paddings = new System.Windows.Forms.Padding(0);
             this.console.ReadOnly = true;
-            this.console.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
+            this.console.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(255)))), ((int)(((byte)(165)))), ((int)(((byte)(0)))));
+            this.console.ServiceLinesColor = System.Drawing.Color.Transparent;
+            this.console.ShowLineNumbers = false;
             this.console.Size = new System.Drawing.Size(633, 443);
             this.console.TabIndex = 0;
-            this.console.Text = "";
             // 
             // IntentConsole
             // 
@@ -62,6 +68,7 @@
 
         #endregion
 
-        private System.Windows.Forms.RichTextBox console;
+        private FastColoredTextBoxNS.FastColoredTextBox console;
+
     }
 }

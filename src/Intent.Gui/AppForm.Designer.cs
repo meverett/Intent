@@ -102,7 +102,7 @@
             this.closeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.closeButton.Font = new System.Drawing.Font("Verdana", 7F);
             this.closeButton.ForeColor = System.Drawing.Color.Gray;
-            this.closeButton.Location = new System.Drawing.Point(892, 0);
+            this.closeButton.Location = new System.Drawing.Point(877, 0);
             this.closeButton.Name = "closeButton";
             this.closeButton.Size = new System.Drawing.Size(23, 23);
             this.closeButton.TabIndex = 2;
@@ -117,7 +117,7 @@
             this.minimizeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.minimizeButton.Font = new System.Drawing.Font("Verdana", 7F);
             this.minimizeButton.ForeColor = System.Drawing.Color.Gray;
-            this.minimizeButton.Location = new System.Drawing.Point(834, 0);
+            this.minimizeButton.Location = new System.Drawing.Point(819, 0);
             this.minimizeButton.Name = "minimizeButton";
             this.minimizeButton.Size = new System.Drawing.Size(23, 23);
             this.minimizeButton.TabIndex = 0;
@@ -164,7 +164,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.activePanel.Location = new System.Drawing.Point(0, 50);
             this.activePanel.Name = "activePanel";
-            this.activePanel.Size = new System.Drawing.Size(915, 487);
+            this.activePanel.Size = new System.Drawing.Size(900, 525);
             this.activePanel.TabIndex = 4;
             // 
             // formTitle
@@ -184,9 +184,9 @@
             this.statusStrip.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.status});
-            this.statusStrip.Location = new System.Drawing.Point(0, 540);
+            this.statusStrip.Location = new System.Drawing.Point(0, 578);
             this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(915, 22);
+            this.statusStrip.Size = new System.Drawing.Size(900, 22);
             this.statusStrip.SizingGrip = false;
             this.statusStrip.TabIndex = 6;
             this.statusStrip.Text = "statusStrip";
@@ -208,7 +208,7 @@
             this.maximizeButton.Font = new System.Drawing.Font("Verdana", 7F);
             this.maximizeButton.ForeColor = System.Drawing.Color.Gray;
             this.maximizeButton.Image = global::Intent.Gui.Resources.Window_Maximize;
-            this.maximizeButton.Location = new System.Drawing.Point(863, 0);
+            this.maximizeButton.Location = new System.Drawing.Point(848, 0);
             this.maximizeButton.Name = "maximizeButton";
             this.maximizeButton.Size = new System.Drawing.Size(23, 23);
             this.maximizeButton.TabIndex = 1;
@@ -385,7 +385,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
             this.BackgroundImage = global::Intent.Gui.Resources.Crosshatch;
-            this.ClientSize = new System.Drawing.Size(915, 562);
+            this.ClientSize = new System.Drawing.Size(900, 600);
             this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.minimizeButton);
             this.Controls.Add(this.formTitle);

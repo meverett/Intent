@@ -249,6 +249,23 @@ namespace Intent.Gui
             control.UnbindAdapter();
             IntentMessaging.RemoveAdapter(control.MessageAdapter);
             adaptersPanel.Controls.Remove(control);
+            
+            // Select another control
+            if (control.MessageAdapter == SelectedAdapter)
+            {
+                // If there's at least one adapter, selcect the first in the list
+                if (adaptersPanel.Controls.Count > 0)
+                {
+                    var firstControl = (MessageAdapterControl)adaptersPanel.Controls[0];
+                    SelectMessageAdapter(firstControl);
+                }
+                // Otherwise do a NULL selection
+                else
+                {
+                    SelectedAdapter = null;
+                    if (AdapterSelected != null) AdapterSelected(this, EventArgs.Empty);
+                }
+            }
         }
 
         // Adds a new control to represent an active message adapter and binds to it

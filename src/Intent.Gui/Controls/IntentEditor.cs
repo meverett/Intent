@@ -5,11 +5,13 @@ using System.Drawing;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using Intent;
 using Intent.Json;
+using FastColoredTextBoxNS;
 
 namespace Intent.Gui
 {
@@ -22,6 +24,27 @@ namespace Intent.Gui
 
         // Stores the editable settings/configure text by the adapter that it is for
         Dictionary<MessageAdapter, string> settingsByAdapter;
+
+        #region Text Editor Styles & Regex
+
+        TextStyle functionStyle = new TextStyle(Brushes.Magenta, null, FontStyle.Regular);
+        TextStyle BlueBoldStyle = new TextStyle(Brushes.Pink, null, FontStyle.Bold);
+        TextStyle BoldStyle = new TextStyle(null, null, FontStyle.Underline | FontStyle.Bold);
+        TextStyle GrayStyle = new TextStyle(Brushes.Pink, null, FontStyle.Regular);
+        TextStyle constantStyle = new TextStyle(Brushes.Lime, null, FontStyle.Regular);
+        TextStyle commentsStyle = new TextStyle(Brushes.Orange, null, FontStyle.Italic);
+        TextStyle stringStyle = new TextStyle(new SolidBrush(Color.FromArgb(255, 0, 151, 251)), null, FontStyle.Regular);
+        TextStyle RedStyle = new TextStyle(Brushes.Pink, null, FontStyle.Regular);
+        TextStyle MaroonStyle = new TextStyle(Brushes.Pink, null, FontStyle.Regular);
+
+        Regex JScriptStringRegex;
+        Regex JScriptCommentRegex1;
+        Regex JScriptCommentRegex2;
+        Regex JScriptCommentRegex3;
+        Regex JScriptNumberRegex;
+        Regex JScriptKeywordRegex;
+
+        #endregion Text Editor Styles & Regex
 
         #endregion Fields
 
@@ -76,8 +99,14 @@ namespace Intent.Gui
             // Listen for when an active message adapter is selected in the UI
             listOfAdapters.AdapterSelected += (s, eArgs) =>
             {
-                
                 var adapter = listOfAdapters.SelectedAdapter;
+
+                // If no adapter is selected, clear the editor
+                if (adapter == null)
+                {
+                    textEditor.Text = "";
+                    return;
+                }
 
                 if (!settingsByAdapter.ContainsKey(adapter))
                 {
@@ -89,20 +118,47 @@ namespace Intent.Gui
                 textEditor.Text = settingsByAdapter[adapter];
             };
 
-            // Listen for changes in the text editor and update the adapter text
-            textEditor.TextChanged += (s, eArgs) =>
-            {
-                if (listOfAdapters.SelectedAdapter == null) return;
-                settingsByAdapter[listOfAdapters.SelectedAdapter] = textEditor.Text;
+            // Initialize javascript regexes
+            var option = PlatformType.GetOperationSystemPlatform() == Platform.X86 ? RegexOptions.Compiled : RegexOptions.None;
+            JScriptStringRegex = new Regex("\"\"|''|\".*?[^\\\\]\"|'.*?[^\\\\]'", option);
+            JScriptCommentRegex1 = new Regex("//.*$", RegexOptions.Multiline | option);
+            JScriptCommentRegex2 = new Regex(@"(/\*.*?\*/)|(/\*.*)", RegexOptions.Singleline | option);
+            JScriptCommentRegex3 = new Regex(@"(/\*.*?\*/)|(.*\*/)", (RegexOptions.RightToLeft | RegexOptions.Singleline) | option);
+            JScriptNumberRegex = new Regex(@"\b\d+[\.]?\d*([eE]\-?\d+)?[lLdDfF]?\b|\b0x[a-fA-F\d]+\b", option);
+            JScriptKeywordRegex = new Regex(@"\b(true|false|break|case|catch|const|continue|default|delete|do|else|export|for|function|if|in|instanceof|new|null|return|switch|this|throw|try|var|void|while|with|typeof)\b", option);
+        }
 
-                // Bubble
-                if (ScriptChanged != null) ScriptChanged(this, EventArgs.Empty);
-            };
+        // Text Editor -> text changed/edited
+        private void textEditor_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (listOfAdapters.SelectedAdapter == null) return;
+            var currentText = settingsByAdapter[listOfAdapters.SelectedAdapter];
+            bool hasChanged = !string.IsNullOrEmpty(currentText) && !string.IsNullOrEmpty(textEditor.Text) && currentText != textEditor.Text;
+            settingsByAdapter[listOfAdapters.SelectedAdapter] = textEditor.Text;
 
-            textEditor.KeyUp += (s, eArgs) =>
-            {
-                
-            };
+            var range = e.ChangedRange;
+
+            // Highlight the text
+            range.tb.CommentPrefix = "//";
+            range.tb.LeftBracket = '{';
+            range.tb.RightBracket = '}';
+            range.tb.LeftBracket2 = '[';
+            range.tb.RightBracket2 = ']';
+
+            range.ClearStyle(new Style[] { functionStyle, BoldStyle, GrayStyle, constantStyle, commentsStyle, stringStyle });
+
+            range.SetStyle(stringStyle, JScriptStringRegex);
+            range.SetStyle(commentsStyle, JScriptCommentRegex1);
+            range.SetStyle(commentsStyle, JScriptCommentRegex2);
+            range.SetStyle(commentsStyle, JScriptCommentRegex3);
+            range.SetStyle(constantStyle, JScriptNumberRegex);
+            range.SetStyle(functionStyle, JScriptKeywordRegex);
+            range.ClearFoldingMarkers();
+            range.SetFoldingMarkers("{", "}");
+            range.SetFoldingMarkers(@"/\*", @"\*/");
+
+            // Bubble
+            if (ScriptChanged != null && hasChanged) ScriptChanged(this, EventArgs.Empty);
         }
 
         #endregion Event Handlers
@@ -163,7 +219,7 @@ namespace Intent.Gui
         public void Clear()
         {
             SuspendLayout();
-            textEditor.Text = null;
+            textEditor.Text = "";
             listOfAdapters.Clear();
             ResumeLayout();
         }
