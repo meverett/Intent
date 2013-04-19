@@ -18,15 +18,6 @@ namespace Intent.Gui
     {
         #region Fields
 
-        // Whether or not there is any adapter input activity
-        bool hasInput = false;
-
-        // Whether or not there is any adapter output activity
-        bool hasOutput = false;
-
-        // Whether or not there is any adapter error activity
-        bool hasError = false;
-
         // Cache image resources locally for faster look up
         static Bitmap activityReceive = Resources.ActivityIndicator_Receive;
         static Bitmap activitySend = Resources.ActivityIndicator_Send;
@@ -48,68 +39,17 @@ namespace Intent.Gui
         /// <summary>
         /// Gets whether or not there is any adapter input activity.
         /// </summary>
-        public bool HasInput
-        {
-            get { return hasInput; }
-
-            set
-            {
-                if (hasInput != value)
-                {
-                    hasInput = value;
-                }
-            }
-        }
+        public bool HasInput { get; set; }
+       
+        /// <summary>
+        /// Gets whether or not there is any adapter output activity.
+        /// </summary>
+        public bool HasOutput { get; set; }
 
         /// <summary>
         /// Gets whether or not there is any adapter output activity.
         /// </summary>
-        public bool HasOutput
-        {
-            get { return hasOutput; }
-
-            set
-            {
-                if (hasOutput != value)
-                {
-                    hasOutput = value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets whether or not there is any adapter output activity.
-        /// </summary>
-        public bool HasErrors
-        {
-            get
-            {
-                return hasError;
-            }
-
-            set
-            {
-                if (hasError != value)
-                {
-                    hasError = value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// The last recorded input activity state.
-        /// </summary>
-        public bool LastInput { get; private set; }
-
-        /// <summary>
-        /// The last recorded output activity state.
-        /// </summary>
-        public bool LastOutput { get; private set; }
-
-        /// <summary>
-        /// The last recorded error state.
-        /// </summary>
-        public bool LastErrors { get; private set; }
+        public bool HasErrors { get; set; }
 
         #endregion Properties
 
@@ -127,9 +67,6 @@ namespace Intent.Gui
         public MessageAdapterControl()
         {
             InitializeComponent();
-            //SetStyle(ControlStyles.AllPaintingInWmPaint, true);
-            //SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-            //SetStyle(ControlStyles.UserPaint, true);
         }
 
         public MessageAdapterControl(MessageAdapter adapter)
@@ -192,21 +129,18 @@ namespace Intent.Gui
             var g = e.Graphics;
 
             // Draw the correct activity light based on the current activity states
-            g.DrawImage(hasError ? activityError : activityNone, Width - 81, 8, activityNone.Width, activityNone.Height);
-            g.DrawImage(hasInput ? activityReceive : activityNone, Width - 52, 8, activityNone.Width, activityNone.Height);
-            g.DrawImage(hasOutput ? activitySend : activityNone, Width - 23, 8, activityNone.Width, activityNone.Height);
+            g.DrawImage(HasErrors ? activityError : activityNone, Width - 81, 8, activityNone.Width, activityNone.Height);
+            g.DrawImage(HasInput ? activityReceive : activityNone, Width - 52, 8, activityNone.Width, activityNone.Height);
+            g.DrawImage(HasOutput ? activitySend : activityNone, Width - 23, 8, activityNone.Width, activityNone.Height);
 
-            // Record the current state
-            LastInput = hasInput;
-            LastOutput = hasOutput;
-            LastErrors = hasError;
-
-            // Reset activity state now that it's been drawn and wait for more to come in
-            hasInput = hasOutput = hasError = false;
+             // Reset activity state now that it's been drawn and wait for more to come in
+            HasInput = HasOutput = HasErrors = false;
         }
         
 
         #endregion Event Handlers
+
+        #region Clean Up
 
         /// <summary>
         /// Unbinds the control from the <see cref="MessageAdapter"/> it is currently bound to.
@@ -217,17 +151,7 @@ namespace Intent.Gui
             MessageAdapter.MessageSent -= adapter_MessageSent;
         }
 
-
-        public void UpdateViewState()
-        {
-            // Record the current state
-            LastInput = hasInput;
-            LastOutput = hasOutput;
-            LastErrors = hasError;
-
-            // Clear the states
-            hasInput = hasOutput = hasError = false;
-        }
+        #endregion Clean Up
 
         #endregion Methods
     }
