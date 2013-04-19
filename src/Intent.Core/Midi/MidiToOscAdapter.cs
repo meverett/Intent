@@ -132,7 +132,7 @@ namespace Intent.Midi
                 var boxedType       = BoxedValue.Box(type);
                 var boxedChannel    = BoxedValue.Box(channel);
                 var boxedValue1     = BoxedValue.Box(value1);
-                var boxedValue2     = BoxedValue.Box(value1);
+                var boxedValue2     = BoxedValue.Box(value2);
 
                 // Call the function
                 var result = argsFunc.Call(rule.ScriptObject, new BoxedValue[] { boxedType, boxedChannel, boxedValue1, boxedValue2 } );
