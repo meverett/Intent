@@ -75,6 +75,7 @@
             this.outActivity.Name = "outActivity";
             this.outActivity.Size = new System.Drawing.Size(23, 23);
             this.outActivity.TabIndex = 1;
+            this.outActivity.Visible = false;
             // 
             // inActivity
             // 
@@ -86,6 +87,7 @@
             this.inActivity.Name = "inActivity";
             this.inActivity.Size = new System.Drawing.Size(23, 23);
             this.inActivity.TabIndex = 1;
+            this.inActivity.Visible = false;
             // 
             // errorActivity
             // 
@@ -97,6 +99,7 @@
             this.errorActivity.Name = "errorActivity";
             this.errorActivity.Size = new System.Drawing.Size(23, 23);
             this.errorActivity.TabIndex = 1;
+            this.errorActivity.Visible = false;
             // 
             // MessageAdapterControl
             // 

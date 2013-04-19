@@ -63,9 +63,6 @@ namespace Intent.Osc
             server = new OscServer(TransportType.Udp, ipEndPoint.Address, ipEndPoint.Port);
             server.FilterRegisteredMethods = false;
             server.ConsumeParsingExceptions = false;
-
-            // Connect event handlers for server
-            server.MessageReceived += server_MessageReceived;
         }
 
         #endregion Constructors
@@ -128,6 +125,7 @@ namespace Intent.Osc
         protected override void OnStart()
         {
             if (server.IsRunning) return;
+            server.MessageReceived += server_MessageReceived;
             server.Start();
             IntentMessaging.WriteLine("Started listening for OSC input events on: {0}", ipEndPoint);
         }
@@ -139,6 +137,7 @@ namespace Intent.Osc
         {
             if (!server.IsRunning) return;
             server.Stop();
+            server.MessageReceived -= server_MessageReceived;
             IntentMessaging.WriteLine("Stopped listening for OSC input events on: {0}", ipEndPoint);
         }
 

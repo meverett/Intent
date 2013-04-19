@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -18,10 +19,22 @@ namespace Intent.Gui
         #region Fields
 
         // Whether or not there is any adapter input activity
-        bool inputActivity = false;
+        bool hasInput = false;
 
         // Whether or not there is any adapter output activity
-        bool outputActivity = false;
+        bool hasOutput = false;
+
+        // Whether or not there is any adapter error activity
+        bool hasError = false;
+
+        // Cache image resources locally for faster look up
+        static Bitmap activityReceive = Resources.ActivityIndicator_Receive;
+        static Bitmap activitySend = Resources.ActivityIndicator_Send;
+        static Bitmap activityError = Resources.ActivityIndicator_Error;
+        static Bitmap activityNone = Resources.ActivityIndicator_NoActivity;
+
+        // Used to draw the tiled backgroun
+        TextureBrush bgBrush;
 
         #endregion Fields
 
@@ -37,14 +50,13 @@ namespace Intent.Gui
         /// </summary>
         public bool HasInput
         {
-            get { return inputActivity; }
+            get { return hasInput; }
 
             set
             {
-                if (inputActivity != value)
+                if (hasInput != value)
                 {
-                    inputActivity = value;
-                    inActivity.BackgroundImage = value ? Resources.ActivityIndicator_Receive : Resources.ActivityIndicator_NoActivity;
+                    hasInput = value;
                 }
             }
         }
@@ -54,14 +66,13 @@ namespace Intent.Gui
         /// </summary>
         public bool HasOutput
         {
-            get { return outputActivity; }
+            get { return hasOutput; }
 
             set
             {
-                if (outputActivity != value)
+                if (hasOutput != value)
                 {
-                    outputActivity = value;
-                    outActivity.BackgroundImage = value ? Resources.ActivityIndicator_Send : Resources.ActivityIndicator_NoActivity;
+                    hasOutput = value;
                 }
             }
         }
@@ -71,13 +82,34 @@ namespace Intent.Gui
         /// </summary>
         public bool HasErrors
         {
-            get { return MessageAdapter != null ? MessageAdapter.HasErrors : false; }
+            get
+            {
+                return hasError;
+            }
 
             set
             {
-                errorActivity.BackgroundImage = value ? Resources.ActivityIndicator_Error : Resources.ActivityIndicator_NoActivity;
+                if (hasError != value)
+                {
+                    hasError = value;
+                }
             }
         }
+
+        /// <summary>
+        /// The last recorded input activity state.
+        /// </summary>
+        public bool LastInput { get; private set; }
+
+        /// <summary>
+        /// The last recorded output activity state.
+        /// </summary>
+        public bool LastOutput { get; private set; }
+
+        /// <summary>
+        /// The last recorded error state.
+        /// </summary>
+        public bool LastErrors { get; private set; }
 
         #endregion Properties
 
@@ -95,9 +127,9 @@ namespace Intent.Gui
         public MessageAdapterControl()
         {
             InitializeComponent();
-            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
-            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-            SetStyle(ControlStyles.UserPaint, true);
+            //SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            //SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            //SetStyle(ControlStyles.UserPaint, true);
         }
 
         public MessageAdapterControl(MessageAdapter adapter)
@@ -113,6 +145,9 @@ namespace Intent.Gui
                 adapter.MessageReceived += adapter_MessageReceived;
                 adapter.MessageSent += adapter_MessageSent;
             }
+
+            // Setup background drawing brush
+            bgBrush = new TextureBrush(BackgroundImage);
         }
 
         #endregion Constructors
@@ -151,6 +186,26 @@ namespace Intent.Gui
             Program.Current.StatusText = null;
         }
 
+        // Custom painting
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics;
+
+            // Draw the correct activity light based on the current activity states
+            g.DrawImage(hasError ? activityError : activityNone, Width - 81, 8, activityNone.Width, activityNone.Height);
+            g.DrawImage(hasInput ? activityReceive : activityNone, Width - 52, 8, activityNone.Width, activityNone.Height);
+            g.DrawImage(hasOutput ? activitySend : activityNone, Width - 23, 8, activityNone.Width, activityNone.Height);
+
+            // Record the current state
+            LastInput = hasInput;
+            LastOutput = hasOutput;
+            LastErrors = hasError;
+
+            // Reset activity state now that it's been drawn and wait for more to come in
+            hasInput = hasOutput = hasError = false;
+        }
+        
+
         #endregion Event Handlers
 
         /// <summary>
@@ -160,6 +215,18 @@ namespace Intent.Gui
         {
             MessageAdapter.MessageReceived -= adapter_MessageReceived;
             MessageAdapter.MessageSent -= adapter_MessageSent;
+        }
+
+
+        public void UpdateViewState()
+        {
+            // Record the current state
+            LastInput = hasInput;
+            LastOutput = hasOutput;
+            LastErrors = hasError;
+
+            // Clear the states
+            hasInput = hasOutput = hasError = false;
         }
 
         #endregion Methods

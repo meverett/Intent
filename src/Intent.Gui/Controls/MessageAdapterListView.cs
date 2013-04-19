@@ -87,9 +87,11 @@ namespace Intent.Gui
 
                 foreach (MessageAdapterControl control in adaptersPanel.Controls)
                 {
-                    control.HasInput = false;
-                    control.HasOutput = false;
-                    control.HasErrors = IntentMessaging.IsRunning && showErrors && control.HasErrors;
+                    // Pulse errors if there are any
+                    control.HasErrors = IntentMessaging.IsRunning && showErrors && control.MessageAdapter.HasErrors;
+
+                    // Force the control to redraw
+                    control.Invalidate();
                 }
             };
 

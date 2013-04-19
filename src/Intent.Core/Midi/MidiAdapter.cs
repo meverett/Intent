@@ -78,14 +78,7 @@ namespace Intent.Midi
             // Make sure the device was found
             if (midi == null)
                 throw new ArgumentException("MIDI input device not found: " + deviceName);
-
-            // Hook up MIDI handlers
-            midi.NoteOn         += midiDevice_NoteOn;
-            midi.NoteOff        += midiDevice_NoteOff;
-            midi.ControlChange  += midiDevice_ControlChange;
-            midi.PitchBend      += midiDevice_PitchBend;
-            midi.ProgramChange  += midiDevice_ProgramChange;
-            
+           
             // Initialize routing rules
             routingRules = new List<MidiRoutingRule>();
         }
@@ -211,6 +204,13 @@ namespace Intent.Midi
             // Load default routing rules
             if ((routingRules == null || routingRules.Count == 0) && File.Exists("midi.js")) ApplySettings(File.ReadAllText("midi.js"));
 
+            // Hook up MIDI handlers
+            midi.NoteOn         += midiDevice_NoteOn;
+            midi.NoteOff        += midiDevice_NoteOff;
+            midi.ControlChange  += midiDevice_ControlChange;
+            midi.PitchBend      += midiDevice_PitchBend;
+            midi.ProgramChange  += midiDevice_ProgramChange;
+
             midi.Open();
             midi.StartReceiving(null);
             IntentMessaging.WriteLine("Started listening for MIDI input events on: {0}", midi.Name);
@@ -224,6 +224,14 @@ namespace Intent.Midi
             if (!midi.IsOpen) return;
             midi.StopReceiving();
             midi.Close();
+
+            // Hook up MIDI handlers
+            midi.NoteOn         -= midiDevice_NoteOn;
+            midi.NoteOff        -= midiDevice_NoteOff;
+            midi.ControlChange  -= midiDevice_ControlChange;
+            midi.PitchBend      -= midiDevice_PitchBend;
+            midi.ProgramChange  -= midiDevice_ProgramChange;
+
             IntentMessaging.WriteLine("Stopped listening for MIDI input events on: {0}", midi.Name);
         }
 
