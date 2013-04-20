@@ -18,6 +18,9 @@ namespace Intent.Gui
     {
         #region Fields
 
+        // Mouse over status update
+        StatusUpdate status;
+
         // Cache image resources locally for faster look up
         static Bitmap activityReceive = Resources.ActivityIndicator_Receive;
         static Bitmap activitySend = Resources.ActivityIndicator_Send;
@@ -114,13 +117,14 @@ namespace Intent.Gui
         // Generic -> Mouse Enter
         private void removeButton_MouseEnter(object sender, EventArgs e)
         {
-            Program.Current.StatusText = "remove adapter: " + MessageAdapter.Name;
+            string text = "remove adapter: " + MessageAdapter.Name;
+            status = Program.Current.AddStatus(new StatusUpdate(text, StatusTypes.Hint));
         }
 
         // Generic -> Mouse Leave
         private void removeButton_MouseLeave(object sender, EventArgs e)
         {
-            Program.Current.StatusText = null;
+            Program.Current.RemoveStatus(status);
         }
 
         // Custom painting

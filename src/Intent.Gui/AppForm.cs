@@ -16,6 +16,41 @@ using Intent.Osc;
 
 namespace Intent.Gui
 {
+    #region Enumerations
+
+    /// <summary>
+    /// Different types of status text states.
+    /// </summary>
+    public enum StatusTypes
+    {
+        /// <summary>
+        /// The status content is normal.
+        /// </summary>
+        Normal,
+
+        /// <summary>
+        /// The status indicates an error has occured.
+        /// </summary>
+        Error,
+
+        /// <summary>
+        /// The status indicates a warning message.
+        /// </summary>
+        Warning,
+
+        /// <summary>
+        /// The status indicates an application hint/helper.
+        /// </summary>
+        Hint,
+
+        /// <summary>
+        /// A temporary status message that should be removed after a period of time.
+        /// </summary>
+        Temporary,
+    }
+
+    #endregion Enumerations
+
     /// <summary>
     /// Main Intent GUI application form.
     /// </summary>
@@ -38,18 +73,23 @@ namespace Intent.Gui
         // The editor control
         IntentEditor editor;
 
+        // Holds a list of application status updates
+        List<StatusUpdate> statusList;
+        int statusIndex = 0; // current status update index in list
+
+        // Current script compliation error, if any
+        StatusUpdate scriptError;
+
+        // The current hint/mouse over status, if any
+        StatusUpdate hintStatus;
+
+        // The current timeout status, if any
+        StatusUpdate timeoutStatus;
+        Timer statusTimer; // used for timeout status
+
         #endregion Fields
 
         #region Properties
-
-        /// <summary>
-        /// Gets or sets the form's status bar text.
-        /// </summary>
-        public string StatusText
-        {
-            get { return status.Text; }
-            set { status.Text = value; }
-        }
 
         #endregion Properties
 
@@ -90,7 +130,16 @@ namespace Intent.Gui
             // Register to messaging events that would create a dirty document
             IntentMessaging.AdaptersUpdated += (s, eArgs) => { isDirty = true; };
             editor.ScriptChanged += (s, eArgs) => { isDirty = true; buildScriptsButton.Enabled = true; };
-        }
+
+            // Initialize application status list
+            statusList = new List<StatusUpdate>();
+            statusTimer = new Timer();
+            statusTimer.Interval = 3000;
+            statusTimer.Tick += statusTimer_Tick;
+
+            // Create a new project file/session
+            FileNew();
+        }        
 
         #region Custom Mouse Handling
 
@@ -211,6 +260,40 @@ namespace Intent.Gui
 
         #region Menu Buttons
 
+        // Intercept form-levle key commands for command shortcut processing
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            switch (keyData)
+            {
+                // File -> New
+                case Keys.Control | Keys.N:
+                    FileNew();
+                    break;
+
+                // File -> Open
+                case Keys.Control | Keys.O:
+                    FileOpen();
+                    break;
+
+                // File -> Save
+                case Keys.Control | Keys.S:
+                    FileSave();
+                    break;
+
+                // File -> Save As
+                case Keys.Control | Keys.S | Keys.Shift:
+                    FileSaveAs();
+                    break;
+
+                // Scripts -> Build All
+                case Keys.Control | Keys.B:
+                    BuildScripts();
+                    break;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         #region File
 
         // File -> New
@@ -282,25 +365,7 @@ namespace Intent.Gui
         // Build All Scripts -> Click
         private void buildScriptsButton_Click(object sender, EventArgs e)
         {
-            try
-            {
-                foreach (MessageAdapter adapter in IntentMessaging.ActiveAdapters)
-                {
-                    // Get the current script text
-                    adapter.ApplySettings(editor.GetAdapterScript(adapter));
-                }
-
-                buildScriptsButton.Enabled = false;
-            }
-            catch (IronJS.Error.CompileError ce)
-            {
-                IntentMessaging.WriteLine("! Compile Error:");
-                IntentMessaging.WriteLine((object)ce.SourceCode);
-            }
-            catch (Exception ex)
-            {
-                IntentMessaging.WriteLine(ex);
-            }
+            BuildScripts();
         }
 
         #endregion Script
@@ -321,57 +386,60 @@ namespace Intent.Gui
         private void menuButton_MouseEnter(object sender, EventArgs e)
         {
             var button = (Button)sender;
+            string text = null;
 
             #region Update status by button name
 
             if (button.Name == editorButton.Name)
             {
-                status.Text = "show the editor";
+                text = "show the editor";
             }
             else if (button.Name == consoleButton.Name)
             {
-                status.Text = "show the console";
+                text = "show the console";
             }
             else if (button.Name == newButton.Name)
             {
-                status.Text = "create a new message routing file";
+                text = "create a new message routing file";
             }
             else if (button.Name == openButton.Name)
             {
-                status.Text = "open an existing message routing file";
+                text = "open an existing message routing file";
             }
             else if (button.Name == saveButton.Name)
             {
-                status.Text = "save the current message routing file";
+                text = "save the current message routing file";
             }
             else if (button.Name == saveAsButton.Name)
             {
-                status.Text = "save a copy of the current message routing file";
+                text = "save a copy of the current message routing file";
             }
             else if (button.Name == startButton.Name)
             {
-                status.Text = "start message routing";
+                text = "start message routing";
             }
             else if (button.Name == stopButton.Name)
             {
-                status.Text = "stop message routing";
+                text = "stop message routing";
             }
             else if (button.Name == buildScriptsButton.Name)
             {
-                status.Text = "build all message adapter scripts";
+                text = "build all message adapter scripts";
             }
             else if (button.Name == clearConsoleButton.Name)
             {
-                status.Text = "clear the console";
+                text = "clear the console";
             }
 
             #endregion Update status by button name
+
+            hintStatus = AddStatus(new StatusUpdate(text, StatusTypes.Hint));
         }
 
         // Generic -> Mouse Leave
         private void menuButton_MouseLeave(object sender, EventArgs e)
         {
-            status.Text = null;
+            if (statusList.Count > 0) RemoveStatus(hintStatus);
         }
 
         #endregion Generic
@@ -388,18 +456,31 @@ namespace Intent.Gui
             // Don't blow away changes
             if (!ConfirmIsDirty()) return;
 
+            // Remove save file name
+            saveFileDialog.FileName = null;
+
             // Stop and clear current adapter list
             Clear();
+
+            // Notify
+            AddStatus(new StatusUpdate("new file created", StatusTypes.Temporary));
         }
 
         // Saves the current session
         void FileSave()
         {
+            // Nothing to save
+            if (!isDirty)
+            {
+                // Notify through status that the file was saved
+                AddStatus(new StatusUpdate("no changes to save", StatusTypes.Warning));
+                return;
+            }
+
             // If we don't already have a saved file path, get one
             if (string.IsNullOrEmpty(saveFileDialog.FileName) || !File.Exists(saveFileDialog.FileName))
                 if (DialogResult.OK != saveFileDialog.ShowDialog()) return;
 
-            Console.WriteLine(saveFileDialog.FileName);
             XmlWriterSettings settings = new XmlWriterSettings() { Indent = true };
 
             using (XmlWriter xw = XmlWriter.Create(saveFileDialog.FileName, settings))
@@ -408,6 +489,9 @@ namespace Intent.Gui
             }
 
             isDirty = false;
+
+            // Notify through status that the file was saved
+            AddStatus(new StatusUpdate("file saved: " + saveFileDialog.FileName, StatusTypes.Temporary));
         }
 
         // Saves the current session as a new file
@@ -424,6 +508,9 @@ namespace Intent.Gui
             }
 
             isDirty = false;
+
+            // Notify through status that the file was saved
+            AddStatus(new StatusUpdate("file saved: " + saveFileDialog.FileName, StatusTypes.Temporary));
         }
 
         // Opens a file/session for editing and playback
@@ -482,6 +569,9 @@ namespace Intent.Gui
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error
                 );
             }
+
+            // Notify through status that the file was opened
+            AddStatus(new StatusUpdate("file opened: " + openFileDialog.FileName, StatusTypes.Temporary));
         }
 
         // Used to confirm a potentially data destroying action between saved changes
@@ -536,6 +626,148 @@ namespace Intent.Gui
         }
 
         #endregion File Operations
+
+        #region Script
+
+        // Build all project javascript files
+        void BuildScripts()
+        {
+            try
+            {
+                foreach (MessageAdapter adapter in IntentMessaging.ActiveAdapters)
+                {
+                    // Get the current script text
+                    adapter.ApplySettings(editor.GetAdapterScript(adapter));
+                }
+
+                buildScriptsButton.Enabled = false;
+
+                // Remove any prior script error status
+                if (scriptError != null)
+                {
+                    RemoveStatus(scriptError);
+                    scriptError = null;
+                }
+
+                // Add successful compilation message
+                AddStatus(new StatusUpdate("all scripts built successfully", StatusTypes.Temporary));
+            }
+            catch (IronJS.Error.CompileError ce)
+            {
+                IntentMessaging.WriteLine("! Compile Error:");
+                IntentMessaging.WriteLine((object)ce.SourceCode);
+
+                // Add error status
+                var text = "Script compliation error! See console for details.";
+                scriptError = AddStatus(new StatusUpdate(text, StatusTypes.Error));
+            }
+            catch (Exception ex)
+            {
+                IntentMessaging.WriteLine(ex);
+            }
+        }
+
+        #endregion Script
+
+        #region Utilities
+
+        /// <summary>
+        /// Adds a new status update to the application form to be displayed.
+        /// </summary>
+        /// <param name="update">The status update to add and display.</param>
+        internal StatusUpdate AddStatus(StatusUpdate update)
+        {
+            // Register the status update
+            statusList.Add(update);
+            int index = statusList.Count - 1;
+
+            switch (update.Type)
+            {
+                case StatusTypes.Error: status.ForeColor = Color.Red; break;
+                case StatusTypes.Warning: status.ForeColor = Color.Orange; break;
+                case StatusTypes.Hint:  status.ForeColor = Color.FromArgb(255, 0, 151, 251); break;
+                case StatusTypes.Normal: status.ForeColor = Color.FromArgb(255, 0, 151, 251); break;
+            }
+
+            // If this update has a lifespan, set a timer on callback to remove it when it's dead
+            if (update.Type == StatusTypes.Temporary || update.Type == StatusTypes.Warning)
+            {
+                lock (statusList)
+                {
+                    // Stop any current timer
+                    statusTimer.Stop();
+
+                    // If there is a current timeout status, clear it immediately
+                    if (timeoutStatus != null) RemoveStatus(timeoutStatus);
+                    timeoutStatus = update; // always use update, not var current
+                    statusTimer.Start();
+                }
+            }
+
+            // Update the actual status label
+            status.Text = update.Text;
+
+            return update;
+        }
+
+        // Handler for timeout status updates
+        void statusTimer_Tick(object sender, EventArgs e)
+        {
+            if (timeoutStatus == null) return;
+            RemoveStatus(timeoutStatus);
+            timeoutStatus = null;
+        }
+
+        /// <summary>
+        /// Removes an existing status update from the application form.
+        /// </summary>
+        /// <param name="update">The status update to remove.</param>
+        internal void RemoveStatus(StatusUpdate update)
+        {
+            lock (statusList)
+            {
+                // Get the index of the update in the status list first
+                int index = statusList.IndexOf(update);
+
+                // Remove the status
+                statusList.Remove(update);
+
+                // All status entries slide down one
+                if (statusIndex > 0) statusIndex--;
+
+                // If this is the current status we need to fall back one status if available
+                //if (index == statusIndex) statusIndex -= statusIndex > 0 ? 1 : 0;
+
+                // Update the status to the next available status
+                if (statusList.Count <= 0)
+                {
+                    status.Text = null;
+                    return;
+                }
+
+                var current = statusList[statusIndex];
+
+                switch (current.Type)
+                {
+                    case StatusTypes.Error: status.ForeColor = Color.Red; break;
+                    case StatusTypes.Warning: status.ForeColor = Color.Orange; break;
+                    case StatusTypes.Hint: status.ForeColor = Color.FromArgb(255, 0, 151, 251); break;
+                    case StatusTypes.Normal: status.ForeColor = Color.FromArgb(255, 0, 151, 251); break;
+                }
+
+                status.Text = current.Text;
+            }
+        }
+
+        // Clears all currently registered timer.Tick event delegates (useful if anonymous)
+        //void ClearTimerDelegates()
+        //{
+        //    var methodInfo = timer.GetType().GetEvent("Tick").EventHandlerType.GetMethod("GetInvocationList");
+        //    Delegate[] handlers = (Delegate[])methodInfo.Invoke(timer, null);
+        //    foreach (Delegate d in handlers) timer.Tick -= (EventHandler)d;
+        //}
+
+        #endregion Utilities
 
         #endregion Methods
     }

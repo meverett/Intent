@@ -26,7 +26,10 @@ namespace Intent.Gui
         // Used to create a delta time between frames for animation effects
         DateTime lastTime;
         double elapsedMs;
-        bool showErrors;        
+        bool showErrors;
+
+        // Mouse over status update
+        StatusUpdate status;
 
         #endregion Fields
 
@@ -121,13 +124,14 @@ namespace Intent.Gui
         // Generic -> Mouse Enter
         private void button_MouseEnter(object sender, EventArgs e)
         {
-            Program.Current.StatusText = "add adapter: " + availableAdapters.SelectedItem.ToString();
+            var text = "add adapter: " + availableAdapters.SelectedItem.ToString();
+            status = Program.Current.AddStatus(new StatusUpdate(text, StatusTypes.Hint));
         }
 
         // Generic -> Mouse Leave
         private void button_MouseLeave(object sender, EventArgs e)
         {
-            Program.Current.StatusText = null;
+            Program.Current.RemoveStatus(status);
         }
 
         #endregion Add/Remove Buttons
