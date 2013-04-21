@@ -638,6 +638,7 @@ namespace Intent.Gui
                 {
                     // Get the current script text
                     adapter.ApplySettings(editor.GetAdapterScript(adapter));
+                    adapter.HasErrors = false;
                 }
 
                 buildScriptsButton.Enabled = false;

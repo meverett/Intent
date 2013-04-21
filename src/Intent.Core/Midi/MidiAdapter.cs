@@ -47,7 +47,7 @@ namespace Intent.Midi
         {
             get
             {
-                return "{ routing: [{ name: \"All\" }] }";
+                return "{ routing: { \"All\": { } } }";
             }
         }
 
@@ -157,7 +157,11 @@ namespace Intent.Midi
             for (int i = 0; i < routingRules.Count; i++)
             {
                 var rule = routingRules[i];
+                
+                // If the rule is disabled, skip it
+                if (!rule.Enabled) continue;
 
+                // But if it's a match, pass the message on
                 if (rule.IsMatch(msg))
                 {
                     // Let subclasses know a MIDI message routing rule matched
@@ -250,14 +254,15 @@ namespace Intent.Midi
             var members = settings.Members;
 
             // Get the routing section if it exists
-            if (members.ContainsKey("routing") && members["routing"] is ArrayObject)
+            if (members.ContainsKey("routing") && members["routing"] is CommonObject)
             {
-                var routes = (ArrayObject)members["routing"];
+                var routes = (CommonObject)members["routing"];
 
-                for (int i = 0; i < routes.Length; i++)
+                foreach (KeyValuePair<string, object> pair in routes.Members)
                 {
-                    var js = routes.Get(i).Object;
-                    var route = new MidiRoutingRule(js);
+                    if (!(pair.Value is CommonObject)) continue; // skip non objects
+                    var js = (CommonObject)pair.Value;
+                    var route = new MidiRoutingRule(pair.Key, js);
                     routingRules.Add(route);
                 }
             }

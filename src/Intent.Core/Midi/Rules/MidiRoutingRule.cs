@@ -41,62 +41,45 @@ namespace Intent.Midi
         /// <summary>
         /// Gets the OSC message address the MIDI route will map to if it matches
         /// </summary>
-        public string OscAddress { get; private set; }
+        public string OutAddress { get; private set; }
 
         /// <summary>
-        /// Gets the OSC message arguments the MIDI route will map to if it matches.
+        /// Gets the OSC message data the MIDI route will map to if it matches.
         /// </summary>
-        public string OscArguments { get; private set; }
+        public string OutData { get; private set; }
 
         /// <summary>
         /// Gets the JavaScript object that generated the routing rule.
         /// </summary>
         public CommonObject ScriptObject { get; set; }
 
+        /// <summary>
+        /// Determines whether or not the rule is currently enabled.
+        /// </summary>
+        public bool Enabled
+        {
+            get
+            {
+                return ScriptObject.Members.ContainsKey("enabled") ? (bool)ScriptObject.Members["enabled"] : true;
+            }
+        }
+
         #endregion Properties
 
         #region Constructors
 
         /// <summary>
-        /// Creates a MIDI routing rule for the given whitelisted or blacklisted
-        /// MIDI message types, and the given value rules.
-        /// </summary>
-        /// <param name="name">The name of the rule.</param>
-        /// <param name="oscAddress">The OSC message address the MIDI route will map to if it matches.</param>
-        /// <param name="oscArguments">The OSC message arguments the MIDI route will map to if it matches.</param>
-        /// <param name="whitelist">The message whitelist to use.</param>
-        /// <param name="blacklist">The message blacklist to use.</param>
-        /// <param name="channelRule">The rule to use for the channel number.</param>
-        /// <param name="value1Rule">The rule to use for value byte 1.</param>
-        /// <param name="value2Rule">The rule to use for value byte 2.</param>
-        public MidiRoutingRule( string name, string oscAddress, string oscArguments,
-                                ICollection<MidiMessageTypes> whitelist, ICollection<MidiMessageTypes> blacklist, 
-                                MidiValueRule channelRule, MidiValueRule value1Rule, MidiValueRule value2Rule)
-        {
-            Name = name;
-            OscAddress = oscAddress;
-            OscArguments = oscArguments;
-
-            this.typeRule = new ListRule<MidiMessageTypes>(whitelist, blacklist);
-            this.matchAnyMessage = whitelist == null && blacklist == null;
-            this.channelRule = channelRule;
-            this.value1Rule = value1Rule;
-            this.value2Rule = value2Rule;
-        }
-
-        /// <summary>
         /// Creates a new MIDI routing rule from the provided JavaScript object.
         /// </summary>
         /// <param name="js">The JavaScript object that contains the routing rule data.</param>
-        public MidiRoutingRule(CommonObject js)
+        public MidiRoutingRule(string name, CommonObject js)
         {
             if (js == null) throw new ArgumentNullException("js");
 
             #region Prepare the rule's components
 
-            string name = js.Members.ContainsKey("name") ? (string)js.Members["name"] : null;
             string oscAddress = js.Members.ContainsKey("address") ? (string)js.Members["address"] : null;
-            string oscArguments = js.Members.ContainsKey("args") && js.Members["args"] is string ? (string)js.Members["args"] : null;
+            string oscArguments = js.Members.ContainsKey("data") && js.Members["data"] is string ? (string)js.Members["data"] : null;
             List<MidiMessageTypes> typeWhitelist = null; // whitelisted MIDI message types
             List<MidiMessageTypes> typeBlacklist = null; // blacklisted MIDI message types
             MidiListRule channelRule = null; // rule used to match against the MIDI channel
@@ -270,8 +253,8 @@ namespace Intent.Midi
             // Store extracted values
             this.ScriptObject = js;
             this.Name = name;
-            this.OscAddress = oscAddress;
-            this.OscArguments = oscArguments;
+            this.OutAddress = oscAddress;
+            this.OutData = oscArguments;
             this.typeRule = new ListRule<MidiMessageTypes>(typeWhitelist, typeBlacklist);
             this.matchAnyMessage = typeWhitelist == null && typeBlacklist == null;
             this.channelRule = channelRule;

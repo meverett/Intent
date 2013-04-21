@@ -130,13 +130,79 @@ namespace Intent.Osc
             // Serial port is closed so nothing to do
             if (!port.IsOpen)
             {
-                IntentMessaging.WriteLine("! Incoming OSC but serial port '{0}' is closed.", port.PortName);
+                IntentMessaging.WriteLine("! Incoming OSC but serial port '{0}' is closed attempting to reconnect...", port.PortName);
+                Stop();
+                Start();
                 return;
             }
 
-            int channel = int.Parse(data["channel"]);
-            int value = int.Parse(data["value"]);
-            WriteDmx(channel, value);
+            // If this is a multi channel/value message, parse out the individual channel messages
+            if (data["channel"].Contains(','))
+            {
+                string rawValue = data["value"];
+                string[] channels = data["channel"].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // This is an HSV value that wants to be converted to RGB and applied to 3 incoming channels
+                if (rawValue.Contains(';') && channels.Length >= 3)
+                {
+                    #region Parse and apply HSV -> RGB conversion
+
+                    // Parse out the separate hue, saturation, and value
+                    string[] hsv = rawValue.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (hsv.Length < 3) return; // incorrect number of values - we should have 3: H;S;V
+                    float h = float.Parse(hsv[0]);
+                    float s = float.Parse(hsv[1]);
+                    float v = float.Parse(hsv[2]);
+                    var color = HSVtoRGB(h, s, v);
+
+                    // Send these to the first 3 channels assuming they are r, g, and b
+                    WriteDmx(int.Parse(channels[0]), color.R);
+                    WriteDmx(int.Parse(channels[1]), color.G);
+                    WriteDmx(int.Parse(channels[2]), color.B);
+
+                    #endregion Parse and apply HSV -> RGB conversion
+                }
+                // This was not a special HSV value that needed to be converted by
+                // this adapter so just pass the direct values through
+                else
+                {
+                    #region Parse and apply generic mutli-message
+
+                    string[] values = null;
+                    int value = -1;
+
+                    // This is a value list, not a single value to be written to multiple channels
+                    if (rawValue.Contains(','))
+                    {
+                        values = data["value"].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    }
+                    // Otherwise it's a single value for multiple channels
+                    else
+                    {
+                        value = int.Parse(data["value"]);
+                    }
+
+                    for (int i = 0; i < channels.Length; i++)
+                    {
+                        // Seems to be a mismatch of channels to values so just stop here
+                        if (values != null && i > values.Length - 1) break;
+
+                        // Otherwise send this channel/value pair
+                        int channel = int.Parse(channels[i]);
+                        if (values != null) value = int.Parse(values[i]);
+                        WriteDmx(channel, value);
+                    }
+
+                    #endregion Parse and apply generic mutli-message
+                }
+            }
+            // Otherwise just send on the single message
+            else
+            {
+                int channel = int.Parse(data["channel"]);
+                int value = int.Parse(data["value"]);
+                WriteDmx(channel, value);
+            }
         }
 
         #endregion Event Handlers
@@ -220,8 +286,7 @@ namespace Intent.Osc
         void WriteDmx(int channel, int value)
         {
             var channelBuffer = GetMsbLsb(channel);
-            var valueBuffer = GetMsbLsb(value);
-            byte[] buffer = new byte[] { channelBuffer[0], channelBuffer[1], valueBuffer[0], valueBuffer[1] };
+            byte[] buffer = new byte[] { channelBuffer[0], channelBuffer[1], (byte)(value & 0xff) };
             port.Write(buffer, 0, buffer.Length);
 
             // Notify
@@ -273,6 +338,64 @@ namespace Intent.Osc
         }
 
         #endregion Settings
+
+        #region Utilities
+
+        // HSV -> RGB conversion
+        ColorRGB HSVtoRGB (float h, float s, float v)
+        {
+            // hsv values = 0 - 1, rgb values = 0 - 255
+            ColorRGB c = new ColorRGB();
+            double var_r, var_g, var_b;
+
+            if(s==0)
+            {
+                c.R = c.G = c.B = (int)Math.Round(v * 255);
+            }
+            else
+            {
+                // h must be < 1
+                var var_h = h * 6;
+                if (var_h==6) var_h = 0;
+                //Or ... var_i = floor( var_h )
+                var var_i = Math.Floor( var_h );
+                var var_1 = v*(1-s);
+                var var_2 = v*(1-s*(var_h-var_i));
+                var var_3 = v*(1-s*(1-(var_h-var_i)));
+                if(var_i==0){ 
+                    var_r = v; 
+                    var_g = var_3; 
+                    var_b = var_1;
+                }else if(var_i==1){ 
+                    var_r = var_2;
+                    var_g = v;
+                    var_b = var_1;
+                }else if(var_i==2){
+                    var_r = var_1;
+                    var_g = v;
+                    var_b = var_3;
+                }else if(var_i==3){
+                    var_r = var_1;
+                    var_g = var_2;
+                    var_b = v;
+                }else if (var_i==4){
+                    var_r = var_3;
+                    var_g = var_1;
+                    var_b = v;
+                }else{ 
+                    var_r = v;
+                    var_g = var_1;
+                    var_b = var_2;
+                }
+                //rgb results = 0 ÷ 255  
+                c.R = (int)Math.Round(var_r * 255);
+                c.G = (int)Math.Round(var_g * 255);
+                c.B = (int)Math.Round(var_b * 255);
+            }
+            return c;  
+        }
+
+        #endregion Utilities
 
         #endregion Methods
     }

@@ -69,10 +69,10 @@ namespace Intent
         public string CurrentSettingScript { get; private set; }
         
         /// <summary>
-        /// Whether or not the adapter currently has any errors or is
+        /// Gets or sets whether or not the adapter currently has any errors or is
         /// in an error state.
         /// </summary>
-        public bool HasErrors { get; protected set; }
+        public bool HasErrors { get; set; }
 
         #endregion Properties
 

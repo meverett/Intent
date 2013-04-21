@@ -68,6 +68,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\ColorRGB.cs" />
     <Compile Include="Dmx\DmxMessage.cs" />
     <Compile Include="IntentMessaging.cs" />
     <Compile Include="MessageAdapterInfo.cs" />

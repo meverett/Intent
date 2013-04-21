@@ -29,11 +29,11 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0) {
-    // Channel and Value are read in as two separate 2 byte values made of msb + lsb
-    char buffer [4];
+    // 3 byte packet, byte 1 & 2 = msb + lsb of channel value (0-512), and the third byte is the value byte (0-255)
+    char buffer [3];
     
     // Read in a 4 byte packet/request
-    Serial.readBytes(buffer, 4);
+    Serial.readBytes(buffer, 3);
     
     // The decoded DMX channel and value
     int channel = -1, value = -1;
@@ -42,11 +42,9 @@ void loop() {
     channel = (buffer[0] << 8) | (buffer[1] & 0xff);
     
     // Read teh DMX value
-    value = (buffer[2] << 8) | (buffer[3] & 0xff);
+    value = buffer[2];
     
     // Pass on the DMX request to the connected DMX port
     DmxMaster.write(channel, value);
-    //Serial.print("c:"); Serial.println(channel);
-    //Serial.print("v:"); Serial.println(value);
   }
 }

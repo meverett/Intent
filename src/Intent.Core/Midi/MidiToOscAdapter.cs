@@ -47,7 +47,7 @@ namespace Intent.Midi
         {
             get
             {
-                return "{ routing: [ { name: \"Note On\", address: \"/midi\", args: \"channel={c}&value={v2}\" } ] }";
+                return "{ routing: { \"All\": { address: \"/midi\", args: \"channel={c}&value={v2}\" } } }";
             }
         }
 
@@ -113,74 +113,101 @@ namespace Intent.Midi
         protected override void OnMidiMessageRouted(MidiRoutingRule rule, Message msg, MidiMessageTypes type, 
                                                     int channel, int value1, int value2)
         {
-            // Setup the mapped outgoing message with the raw MIDI data and the OSC mapped arguments
-            var oscMsg = new OscMessage(ipEndPoint, rule.OscAddress);
-
-            // Prepare the outgoing arguments
-            string args = null;
-
-            // If args is NULL, see if the original settings object defines it as a function
-            if (string.IsNullOrEmpty(rule.OscArguments) && rule.ScriptObject != null 
-                && rule.ScriptObject.Members.ContainsKey("args") && rule.ScriptObject.Members["args"] is FunctionObject)
+            try
             {
-                #region Execute argument function; pass in MIDI messge values
+                // Setup the mapped outgoing message with the raw MIDI data and the OSC mapped arguments
+                var oscMsg = new OscMessage(ipEndPoint, rule.OutAddress);
 
-                // Get the JavaScript args function
-                var argsFunc = (FunctionObject)rule.ScriptObject.Members["args"];
+                // Prepare the outgoing arguments
+                string data = null;
 
-                // Box the MIDI message values
-                var boxedType       = BoxedValue.Box(type);
-                var boxedChannel    = BoxedValue.Box(channel);
-                var boxedValue1     = BoxedValue.Box(value1);
-                var boxedValue2     = BoxedValue.Box(value2);
-
-                // Call the function
-                var result = argsFunc.Call(rule.ScriptObject, new BoxedValue[] { boxedType, boxedChannel, boxedValue1, boxedValue2 } );
-
-                // If the function returned a string, just pass it on
-                if (result.IsString)
+                // If args is NULL, see if the original settings object defines it as a function
+                if (string.IsNullOrEmpty(rule.OutData) && rule.ScriptObject != null
+                    && rule.ScriptObject.Members.ContainsKey("data") && rule.ScriptObject.Members["data"] is FunctionObject)
                 {
-                    args = (string)result.ClrBoxed;
-                }
-                else if (result.IsObject)
-                {
-                    // Build the outgoing message form the returned object
-                    var argsObj = result.Object;
-                    sb.Clear();     // clear string builder for the new message
-                    int count = 1;  // count the number of name/value pairs
+                    #region Execute argument function; pass in MIDI messge values
 
-                    foreach (KeyValuePair<string, object> pair in argsObj.Members)
+                    // Get the JavaScript args function
+                    var dataFunc = (FunctionObject)rule.ScriptObject.Members["data"];
+
+                    // Box the MIDI message values
+                    var boxedType = BoxedValue.Box(type);
+                    var boxedChannel = BoxedValue.Box(channel);
+                    var boxedValue1 = BoxedValue.Box(value1);
+                    var boxedValue2 = BoxedValue.Box(value2);
+
+                    // Call the function
+                    var result = dataFunc.Call(rule.ScriptObject, new BoxedValue[] { boxedType, boxedChannel, boxedValue1, boxedValue2 });
+
+                    // If the function returned a string, just pass it on
+                    if (result.IsString)
                     {
-                        sb.Append(pair.Key + "=" + pair.Value.ToString());
-                        if (count < argsObj.Members.Count) sb.Append("&");
-                        count++;
+                        data = (string)result.ClrBoxed;
+                    }
+                    else if (result.IsObject)
+                    {
+                        // Build the outgoing message form the returned object
+                        var argsObj = result.Object;
+                        sb.Clear();     // clear string builder for the new message
+                        int count = 1;  // count the number of name/value pairs
+
+                        foreach (KeyValuePair<string, object> pair in argsObj.Members)
+                        {
+                            // If this is not an array of values just add the direct key/value
+                            if (!(pair.Value is ArrayObject))
+                            {
+                                sb.Append(pair.Key + "=" + pair.Value.ToString());
+
+                            }
+                            // Otherwise this is an array of values
+                            else
+                            {
+                                sb.Append(pair.Key + "=");
+                                var array = (ArrayObject)pair.Value;
+
+                                for (int i = 0; i < array.Length; i++)
+                                {
+                                    sb.Append(array.Get(i).ClrBoxed.ToString());
+                                    if (i < array.Length - 1) sb.Append(",");
+                                }
+                            }
+
+                            // Properly encode any future values
+                            if (count < argsObj.Members.Count) sb.Append("&");
+                            count++;
+                        }
+
+                        data = sb.ToString();
                     }
 
-                    args = sb.ToString();
+                    #endregion Execute argument function; pass in MIDI messge values
+                }
+                // Otherwise value inject into the OSC arguments; substitute dynamic MIDI values: channel, value 1, value 2 bytes
+                else
+                {
+                    data = rule.OutData.
+                        Replace("{t}", type.ToString()).
+                        Replace("{c}", channel.ToString()).
+                        Replace("{v1}", value1.ToString()).
+                        Replace("{v2}", value2.ToString());
                 }
 
-                #endregion Execute argument function; pass in MIDI messge values
+                // Append the message arguments
+                oscMsg.Append(data);
+
+                //Intent.WriteLine("{0} => {1}:{2}", rule.Name, rule.OscAddress, args);
+
+                // Relay the MIDI message over OSC
+                oscMsg.Send(ipEndPoint);
+
+                // Notify
+                TriggerMessageSent();
             }
-            // Otherwise value inject into the OSC arguments; substitute dynamic MIDI values: channel, value 1, value 2 bytes
-            else
+            catch (Exception ex)
             {
-                args = rule.OscArguments.
-                    Replace("{t}", type.ToString()).
-                    Replace("{c}", channel.ToString()).
-                    Replace("{v1}", value1.ToString()).
-                    Replace("{v2}", value2.ToString());
+                HasErrors = true;
+                IntentMessaging.WriteLine(ex);
             }
-
-            // Append the message arguments
-            oscMsg.Append(args);
-
-            //Intent.WriteLine("{0} => {1}:{2}", rule.Name, rule.OscAddress, args);
-
-            // Relay the MIDI message over OSC
-            oscMsg.Send(ipEndPoint);
-
-            // Notify
-            TriggerMessageSent();
         }
 
         #endregion Event Handlers
