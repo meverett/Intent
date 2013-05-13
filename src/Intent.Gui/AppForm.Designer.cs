@@ -390,6 +390,7 @@
             this.KeyPreview = true;
             this.Name = "AppForm";
             this.Text = "Intent Editor";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form_FormClosed);
             this.Load += new System.EventHandler(this.Form_Load);
             this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.Form_MouseDoubleClick);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form_MouseDown);

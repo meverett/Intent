@@ -11,6 +11,7 @@ namespace Intent.Midi
     /// </summary>
     public enum MidiMessageTypes
     {
+        Unknown         = -1,
         ControlChange   = 0,
         NoteOn          = 1,
         NoteOff         = 2,

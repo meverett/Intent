@@ -156,9 +156,12 @@ namespace Intent.Osc
                     var color = HSVtoRGB(h, s, v);
 
                     // Send these to the first 3 channels assuming they are r, g, and b
-                    WriteDmx(int.Parse(channels[0]), color.R);
-                    WriteDmx(int.Parse(channels[1]), color.G);
-                    WriteDmx(int.Parse(channels[2]), color.B);
+                    for (int i = 0; i < channels.Length; i += 3)
+                    {
+                        WriteDmx(int.Parse(channels[i]), color.R);
+                        WriteDmx(int.Parse(channels[i + 1]), color.G);
+                        WriteDmx(int.Parse(channels[i + 2]), color.B);
+                    }
 
                     #endregion Parse and apply HSV -> RGB conversion
                 }

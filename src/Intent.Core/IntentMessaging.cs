@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using System.Threading;
 
 using IronJS;
 using IronJS.Hosting;
@@ -30,9 +31,27 @@ namespace Intent
 
         #endregion Adapters;
 
+        #region Script
+
+        // Global script context for message adapters
+        private static CSharp.Context script;
+        
+        // Used to call script update loops
+        static Timer updateTimer;
+
+        // List of adapter script udpate functions/callbacks
+        static Dictionary<MessageAdapter, FunctionObject> updateFunctions = new Dictionary<MessageAdapter, FunctionObject>();
+
+        #endregion Script
+
         #endregion Fields
 
         #region Properties
+
+        /// <summary>
+        /// Gets the runtime's JavaScript context.
+        /// </summary>
+        public static CSharp.Context Script { get { return script; } }
 
         /// <summary>
         /// Gets the last text update that was written to the console.
@@ -89,6 +108,16 @@ namespace Intent
         public static event EventHandler Stopped;
 
         #endregion Events
+
+        #region Constructors
+
+        static IntentMessaging()
+        {
+            script = new CSharp.Context();
+            script.SetGlobal("print", IronJS.Native.Utils.CreateFunction<Action<BoxedValue>>(script.Environment, 1, ScriptPrint));
+        }
+
+        #endregion Constructors
 
         #region Methods
 
@@ -167,7 +196,44 @@ namespace Intent
             lock(adapters)
             {
                 WriteLine("Intent Messaging => Starting");
-                foreach (var adapter in adapters) adapter.Start();
+
+                // Clear the current list of update functions
+                updateFunctions.Clear();
+
+                foreach (var adapter in adapters)
+                {
+                    // Check to see if the adapter implements an update function/callback
+                    if (adapter.CurrentSettings != null)
+                    {
+                        var members = adapter.CurrentSettings.Members;
+
+                        // If the update function exists, add it to the list
+                        if (members.ContainsKey("update") &&members["update"] is FunctionObject)
+                            updateFunctions.Add(adapter, (FunctionObject)members["update"]);
+                    }
+
+                    // Start the adapter
+                    adapter.Start();
+                }
+
+                // Start the update functions
+                if (updateFunctions.Count > 0 || script.GetGlobal("update").IsFunction)
+                {
+                    updateTimer = new Timer((state) =>
+                    {
+                        // Call update functions
+                        foreach (KeyValuePair<MessageAdapter, FunctionObject> pair in updateFunctions)
+                        {
+                            pair.Value.Call(pair.Key.CurrentSettings);
+                        }
+
+                        // Call global update timer
+                        var globalUpdate = script.GetGlobal("update");
+                        if (globalUpdate.IsFunction) globalUpdate.Func.Call(null);
+                        
+                    }, null, 0, 25);
+                }
+
                 IsRunning = true;
                 WriteLine("Intent Messaging => Started");
             }
@@ -186,7 +252,11 @@ namespace Intent
             lock (adapters)
             {
                 WriteLine("Intent Messaging => Stopping");
-                foreach (var adapter in adapters) adapter.Stop();
+
+                // Stop update loop thread if started
+                if (updateTimer != null) updateTimer.Dispose();
+
+                foreach (var adapter in adapters) { adapter.Stop(); adapter.HasErrors = false; }
                 IsRunning = false;
                 WriteLine("Intent Messaging => Stopped");
             }
@@ -391,19 +461,10 @@ namespace Intent
 
         #region Script
 
-        public static void Script()
+        // script: print() 
+        static void ScriptPrint(BoxedValue value)
         {
-            var script = new CSharp.Context();
-            var result = script.Execute("var t = { 'test': 'hey', 'number': 432, 'do': function(i) { return i + 37; } }");
-
-            if (result is CommonObject)
-            {
-                var obj = (CommonObject)result;
-                var doFunc = (FunctionObject)obj.Members["do"];
-                var arg = BoxedValue.Box(2);
-                var val = doFunc.Call(obj, arg);
-                System.Console.WriteLine(val.ClrBoxed);
-            }
+            IntentMessaging.WriteLine(value.ClrBoxed);
         }
 
         #endregion Script

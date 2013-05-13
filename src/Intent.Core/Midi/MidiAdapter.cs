@@ -78,7 +78,7 @@ namespace Intent.Midi
             // Make sure the device was found
             if (midi == null)
                 throw new ArgumentException("MIDI input device not found: " + deviceName);
-           
+
             // Initialize routing rules
             routingRules = new List<MidiRoutingRule>();
         }
@@ -112,7 +112,8 @@ namespace Intent.Midi
             {
                 ControlChangeMessage m = (ControlChangeMessage)msg;
                 channel = (int)m.Channel + 1;
-                value1 = m.Value;
+                value1 = (int)m.Control;
+                value2 = m.Value;
             }
             else if (msg is NoteOnMessage)
             {
@@ -180,7 +181,7 @@ namespace Intent.Midi
         /// <param name="value1">The MIDI message data byte 2 value.</param>
         protected virtual void OnMidiMessageReceived(Message msg, MidiMessageTypes type,
                                                         int channel, int value1, int value2) { }
-
+        
         /// <summary>
         /// When overriden in derived classes, handles the reception of a MIDI message
         /// that satisfied a routing rule.
@@ -193,7 +194,6 @@ namespace Intent.Midi
         protected virtual void OnMidiMessageRouted(MidiRoutingRule rule, Message msg, MidiMessageTypes type, 
                                                     int channel, int value1, int value2) { }
         
-
         #endregion Event Handlers
 
         #region Operation
@@ -215,6 +215,7 @@ namespace Intent.Midi
             midi.PitchBend      += midiDevice_PitchBend;
             midi.ProgramChange  += midiDevice_ProgramChange;
 
+            //midi.MessageReceived += midi_MessageReceived;
             midi.Open();
             midi.StartReceiving(null);
             IntentMessaging.WriteLine("Started listening for MIDI input events on: {0}", midi.Name);

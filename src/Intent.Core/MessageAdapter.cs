@@ -17,9 +17,6 @@ namespace Intent
     {
         #region Fields
 
-        // Global script context for message adapters
-        protected readonly static CSharp.Context script = new CSharp.Context();
-
         #endregion Fields
 
         #region Properties
@@ -42,7 +39,7 @@ namespace Intent
         {
             get
             {
-                return script.Execute(FormatSettingsScript(DefaultSettingsScript)) as CommonObject;
+                return IntentMessaging.Script.Execute(FormatSettingsScript(DefaultSettingsScript)) as CommonObject;
             }
         }
 
@@ -73,6 +70,11 @@ namespace Intent
         /// in an error state.
         /// </summary>
         public bool HasErrors { get; set; }
+
+        /// <summary>
+        /// Any current exception associated with the adapter's settings script.
+        /// </summary>
+        public IronJS.Error.CompileError SettingsException { get; private set; }
 
         #endregion Properties
 
@@ -167,14 +169,24 @@ namespace Intent
         {
             if (string.IsNullOrEmpty(settingsScript)) throw new ArgumentNullException("script");
 
-            // Parse the settings javascript
-            var settings = (CommonObject)script.Execute(FormatSettingsScript(settingsScript));
-
-            // Pass the parsed settings data down for custom consumption
-            ApplySettings(settings);
-
             // Assign the current settings script to the adapter
             CurrentSettingScript = settingsScript;
+
+            // Parse the settings javascript
+            try
+            {
+                var settings = (CommonObject)IntentMessaging.Script.Execute(FormatSettingsScript(settingsScript));
+
+                // Pass the parsed settings data down for custom consumption
+                ApplySettings(settings);
+                SettingsException = null;
+                HasErrors = false;
+            }
+            catch (IronJS.Error.CompileError ce)
+            {
+                HasErrors = true;
+                SettingsException = ce;
+            }
         }
 
         /// <summary>

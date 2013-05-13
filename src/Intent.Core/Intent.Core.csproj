@@ -72,6 +72,7 @@
     <Compile Include="Dmx\DmxMessage.cs" />
     <Compile Include="IntentMessaging.cs" />
     <Compile Include="MessageAdapterInfo.cs" />
+    <Compile Include="Midi\MidiDeviceInfo.cs" />
     <Compile Include="Osc\OscToDmxAdapter.cs" />
     <Compile Include="Json\Json.cs" />
     <Compile Include="MessageAdapterAttribute.cs" />

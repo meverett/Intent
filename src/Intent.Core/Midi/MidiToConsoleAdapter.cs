@@ -23,6 +23,10 @@ namespace Intent.Midi
         {
             IntentMessaging.WriteLine("{0,-14} channel:{1:###}\tvalue1: {2:###}\tvalue2 {3:###}", type, channel, value1, value2);
         }
+        //protected override void OnMidiMessageReceived(MidiMessage msg, MidiMessageTypes type, int channel, int value1, int value2)
+        //{
+        //    IntentMessaging.WriteLine("{0,-14} channel:{1:###}\tvalue1: {2:###}\tvalue2 {3:###}", type, channel, value1, value2);
+        //}
 
         /// <summary>
         /// Writes information about routing rule matches to the console.
@@ -38,5 +42,11 @@ namespace Intent.Midi
             IntentMessaging.WriteLine("=> {0}", rule.Name);
             TriggerMessageSent();
         }
+        //protected override void OnMidiMessageRouted(MidiRoutingRule rule, MidiMessage msg, MidiMessageTypes type, 
+        //                                            int channel, int value1, int value2)
+        //{
+        //    IntentMessaging.WriteLine("=> {0}", rule.Name);
+        //    TriggerMessageSent();
+        //}
     }
 }

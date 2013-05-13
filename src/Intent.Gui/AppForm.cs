@@ -139,7 +139,13 @@ namespace Intent.Gui
 
             // Create a new project file/session
             FileNew();
-        }        
+        }
+
+        // Clean up system on exit
+        private void Form_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            IntentMessaging.Stop();
+        }
 
         #region Custom Mouse Handling
 
@@ -638,7 +644,22 @@ namespace Intent.Gui
                 {
                     // Get the current script text
                     adapter.ApplySettings(editor.GetAdapterScript(adapter));
-                    adapter.HasErrors = false;
+
+                    // Make sure there were no settings errors
+                    if (adapter.SettingsException != null)
+                    {
+                        IntentMessaging.WriteLine("! Compile Error:");
+                        IntentMessaging.WriteLine((object)adapter.SettingsException.SourceCode);
+
+                        // Add error status
+                        var text = "Script compliation error! See console for details.";
+                        scriptError = AddStatus(new StatusUpdate(text, StatusTypes.Error));
+                        return;
+                    }
+                    else
+                    {
+                        adapter.HasErrors = false;
+                    }
                 }
 
                 buildScriptsButton.Enabled = false;
@@ -648,6 +669,13 @@ namespace Intent.Gui
                 {
                     RemoveStatus(scriptError);
                     scriptError = null;
+                }
+
+                // Start messaging service to send any new init data
+                if (IntentMessaging.IsRunning)
+                {
+                    IntentMessaging.Stop();
+                    IntentMessaging.Start();
                 }
 
                 // Add successful compilation message
