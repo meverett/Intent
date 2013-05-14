@@ -139,6 +139,11 @@ namespace Intent.Midi
                     // Call the function
                     var result = dataFunc.Call(rule.ScriptObject, new BoxedValue[] { boxedType, boxedChannel, boxedValue1, boxedValue2 });
 
+                    // NULL - don't do anything
+                    if (result.IsNull)
+                    {
+                        return;
+                    }
                     // If the function returned a string, just pass it on
                     if (result.IsString)
                     {

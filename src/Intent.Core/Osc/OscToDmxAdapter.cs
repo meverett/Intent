@@ -139,65 +139,60 @@ namespace Intent.Osc
             // If this is a multi channel/value message, parse out the individual channel messages
             if (data["channel"].Contains(','))
             {
-                string rawValue = data["value"];
+                int valueIndex = 0;
+                string[] values = data["value"].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                 string[] channels = data["channel"].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-                // This is an HSV value that wants to be converted to RGB and applied to 3 incoming channels
-                if (rawValue.Contains(';') && channels.Length >= 3)
+                // Go through each channel
+                for (int c = 0; c < channels.Length; )
                 {
-                    #region Parse and apply HSV -> RGB conversion
+                    // No more values available
+                    if (valueIndex >= values.Length) break;
 
-                    // Parse out the separate hue, saturation, and value
-                    string[] hsv = rawValue.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (hsv.Length < 3) return; // incorrect number of values - we should have 3: H;S;V
-                    float h = float.Parse(hsv[0]);
-                    float s = float.Parse(hsv[1]);
-                    float v = float.Parse(hsv[2]);
-                    var color = HSVtoRGB(h, s, v);
+                    // Get the current raw value
+                    string rawValue = values[valueIndex];
 
-                    // Send these to the first 3 channels assuming they are r, g, and b
-                    for (int i = 0; i < channels.Length; i += 3)
+                    // This is an HSV value that wants to be converted to RGB and applied to 3 incoming channels
+                    if (rawValue.Contains(';') && c + 3 < channels.Length)
                     {
-                        WriteDmx(int.Parse(channels[i]), color.R);
-                        WriteDmx(int.Parse(channels[i + 1]), color.G);
-                        WriteDmx(int.Parse(channels[i + 2]), color.B);
+                        #region Parse and apply HSV -> RGB conversion
+
+                        // Parse out the separate hue, saturation, and value
+                        string[] hsv = rawValue.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (hsv.Length < 3) continue; // incorrect number of values - we should have 3: H;S;V
+                        float h = float.Parse(hsv[0]);
+                        float s = float.Parse(hsv[1]);
+                        float v = float.Parse(hsv[2]);
+                        var color = HSVtoRGB(h, s, v);
+
+                        // Send these to the next 3 channels assuming they are r, g, and b
+                        WriteDmx(int.Parse(channels[c]),        color.R);
+                        WriteDmx(int.Parse(channels[c + 1]),    color.G);
+                        WriteDmx(int.Parse(channels[c + 2]),    color.B);
+
+                        // Increment channel count by 3
+                        c += 3;
+                        #endregion Parse and apply HSV -> RGB conversion
                     }
-
-                    #endregion Parse and apply HSV -> RGB conversion
-                }
-                // This was not a special HSV value that needed to be converted by
-                // this adapter so just pass the direct values through
-                else
-                {
-                    #region Parse and apply generic mutli-message
-
-                    string[] values = null;
-                    int value = -1;
-
-                    // This is a value list, not a single value to be written to multiple channels
-                    if (rawValue.Contains(','))
-                    {
-                        values = data["value"].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    }
-                    // Otherwise it's a single value for multiple channels
+                    // This was not a special HSV value that needed to be converted by
+                    // this adapter so just pass the direct values through
                     else
                     {
-                        value = int.Parse(data["value"]);
-                    }
+                        #region Parse and apply
 
-                    for (int i = 0; i < channels.Length; i++)
-                    {
-                        // Seems to be a mismatch of channels to values so just stop here
-                        if (values != null && i > values.Length - 1) break;
-
-                        // Otherwise send this channel/value pair
-                        int channel = int.Parse(channels[i]);
-                        if (values != null) value = int.Parse(values[i]);
+                        int value = int.Parse(rawValue);
+                        int channel = int.Parse(channels[c]);
                         WriteDmx(channel, value);
+
+                        // Increment the channels by one
+                        c++;
+                        #endregion Parse and apply
                     }
 
-                    #endregion Parse and apply generic mutli-message
+                    // Increment the value as needed
+                    if (values.Length > 1) valueIndex++;
                 }
+                
             }
             // Otherwise just send on the single message
             else

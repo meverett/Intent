@@ -25,4 +25,5 @@ for (var i = 0; i < lights.pucks.length; i++) {
 
 // Create the OSC to DMX adapter
 var oscToDmx = { maxChannel: 129, setup: dmxSetup };
-addAdapter(adapters.oscToDmx, oscToDmx);
+//addAdapter(adapters.oscToDmx, oscToDmx);
+addAdapter(adapters.oscToConsole, oscToDmx);

@@ -4,13 +4,13 @@ var midiToOsc = {
         // Update from MIDI Control Change messages
         "Control Change": {
             message: "control change",
-            address: "/global",
+            address: "/lights",
             data: updateFromCC
         },
         // Update from MIDI note on messages
         "Note On": {
             message: "note on",
-            address: "/global",
+            address: "/lights",
             data: updateFromCC
         }
     }

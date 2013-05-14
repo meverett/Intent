@@ -521,7 +521,7 @@ namespace Intent
             // Get all script files in the directory and sort in preferential order
             var scriptFiles = Directory.GetFiles(dirPath, "*.js")
                                 .OrderByDescending(f => Path.GetFileName(f).ToLower().StartsWith("setup"))
-                                .OrderByDescending(f => Path.GetFileName(f).ToLower().StartsWith("def."));
+                                .OrderByDescending(f => Path.GetFileName(f).ToLower().StartsWith("lib."));
 
             // Load all JavaScript files found in the directory
             foreach (string filePath in scriptFiles) 

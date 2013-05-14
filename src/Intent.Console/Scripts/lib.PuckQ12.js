@@ -1,7 +1,7 @@
 ﻿// Blizzard Q12+ static par cans
 PuckQ12 = function (index, options) {
     this.offset = (index * 16) + 1;
-    this.mode = RGB;
+    this.mode = HSV;
 
     this.intensity = 1;
     this.r = 0; this.g = 0; this.b = 0;
