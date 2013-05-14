@@ -153,7 +153,7 @@ namespace Intent.Osc
                     string rawValue = values[valueIndex];
 
                     // This is an HSV value that wants to be converted to RGB and applied to 3 incoming channels
-                    if (rawValue.Contains(';') && c + 3 < channels.Length)
+                    if (rawValue.Contains(';') && c + 2 < channels.Length)
                     {
                         #region Parse and apply HSV -> RGB conversion
 

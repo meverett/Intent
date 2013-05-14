@@ -88,10 +88,10 @@
     <Content Include="Scripts\oscToDmx.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Scripts\lib.PuckQ12.js">
+    <Content Include="Scripts\lib.puckQ12+.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Scripts\lib.FlurryTri.js">
+    <Content Include="Scripts\lib.flurryTri.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Scripts\setup.js">
