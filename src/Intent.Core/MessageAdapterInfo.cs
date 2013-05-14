@@ -9,7 +9,7 @@ namespace Intent
     /// <summary>
     /// Contains information about a particular <see cref="MessageAdapter"/>.
     /// </summary>
-    public struct MessageAdapterInfo
+    public class MessageAdapterInfo
     {
         #region Fields
 

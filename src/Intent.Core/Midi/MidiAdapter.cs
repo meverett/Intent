@@ -218,7 +218,7 @@ namespace Intent.Midi
             //midi.MessageReceived += midi_MessageReceived;
             midi.Open();
             midi.StartReceiving(null);
-            IntentMessaging.WriteLine("Started listening for MIDI input events on: {0}", midi.Name);
+            IntentRuntime.WriteLine("Started listening for MIDI input events on: {0}", midi.Name);
         }
 
         /// <summary>
@@ -237,7 +237,7 @@ namespace Intent.Midi
             midi.PitchBend      -= midiDevice_PitchBend;
             midi.ProgramChange  -= midiDevice_ProgramChange;
 
-            IntentMessaging.WriteLine("Stopped listening for MIDI input events on: {0}", midi.Name);
+            IntentRuntime.WriteLine("Stopped listening for MIDI input events on: {0}", midi.Name);
         }
 
         #endregion Operation
@@ -268,7 +268,7 @@ namespace Intent.Midi
                 }
             }
 
-            IntentMessaging.WriteLine("MIDI routing rules loaded: {0}", routingRules.Count);
+            IntentRuntime.WriteLine("MIDI routing rules loaded: {0}", routingRules.Count);
         }
 
         #endregion Settings

@@ -127,7 +127,7 @@ namespace Intent.Osc
             if (server.IsRunning) return;
             server.MessageReceived += server_MessageReceived;
             server.Start();
-            IntentMessaging.WriteLine("Started listening for OSC input events on: {0}", ipEndPoint);
+            IntentRuntime.WriteLine("Started listening for OSC input events on: {0}", ipEndPoint);
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace Intent.Osc
             if (!server.IsRunning) return;
             server.Stop();
             server.MessageReceived -= server_MessageReceived;
-            IntentMessaging.WriteLine("Stopped listening for OSC input events on: {0}", ipEndPoint);
+            IntentRuntime.WriteLine("Stopped listening for OSC input events on: {0}", ipEndPoint);
         }
 
         #endregion Operation

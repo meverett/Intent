@@ -128,7 +128,7 @@ namespace Intent.Gui
             editor.Visible = true;
 
             // Register to messaging events that would create a dirty document
-            IntentMessaging.AdaptersUpdated += (s, eArgs) => { isDirty = true; };
+            IntentRuntime.AdaptersUpdated += (s, eArgs) => { isDirty = true; };
             editor.ScriptChanged += (s, eArgs) => { isDirty = true; buildScriptsButton.Enabled = true; };
 
             // Initialize application status list
@@ -144,7 +144,7 @@ namespace Intent.Gui
         // Clean up system on exit
         private void Form_FormClosed(object sender, FormClosedEventArgs e)
         {
-            IntentMessaging.Stop();
+            IntentRuntime.Stop();
         }
 
         #region Custom Mouse Handling
@@ -333,34 +333,34 @@ namespace Intent.Gui
         // Start Messaging -> Click
         private void startButton_Click(object sender, EventArgs e)
         {
-            if (IntentMessaging.IsRunning) return;
+            if (IntentRuntime.IsRunning) return;
 
             try
             {
-                IntentMessaging.Start();
+                IntentRuntime.Start();
                 startButton.Enabled = false;
                 stopButton.Enabled = true;
             }
             catch (Exception ex)
             {
-                IntentMessaging.WriteLine(ex);
+                IntentRuntime.WriteLine(ex);
             }
         }
 
         // Stop Messaging -> Click
         private void stopButton_Click(object sender, EventArgs e)
         {
-            if (!IntentMessaging.IsRunning) return;
+            if (!IntentRuntime.IsRunning) return;
 
             try
             {
-                IntentMessaging.Stop();
+                IntentRuntime.Stop();
                 startButton.Enabled = true;
                 stopButton.Enabled = false;
             }
             catch (Exception ex)
             {
-                IntentMessaging.WriteLine(ex);
+                IntentRuntime.WriteLine(ex);
             }
         }
 
@@ -550,21 +550,21 @@ namespace Intent.Gui
                     var settingsScript = adapter.InnerText;
 
                     // Add the adapter
-                    IntentMessaging.AddAdapter(name.Value, settingsScript);
+                    IntentRuntime.AddAdapter(name.Value, settingsScript);
                 }
 
                 // Update the UI state to the new file data
                 editor.RefreshActiveAdapters();
 
                 // Select the first one
-                var firstAdapter = IntentMessaging.ActiveAdapters.FirstOrDefault();
+                var firstAdapter = IntentRuntime.ActiveAdapters.FirstOrDefault();
                 if (firstAdapter != null) editor.SelectMessageAdapter(firstAdapter);
 
                 // Set the save file name to the opened file name
                 saveFileDialog.FileName = Path.GetFileName(openFileDialog.FileName);
 
                 // If the message adapter was currently playing, resume
-                if (stopButton.Enabled) IntentMessaging.Start();
+                if (stopButton.Enabled) IntentRuntime.Start();
 
                 isDirty = false;
             }
@@ -602,7 +602,7 @@ namespace Intent.Gui
             var messageAdapters = doc.CreateElement("MessageAdapters");
             root.AppendChild(messageAdapters);
 
-            foreach (MessageAdapter adapter in IntentMessaging.ActiveAdapters)
+            foreach (MessageAdapter adapter in IntentRuntime.ActiveAdapters)
             {
                 // Create an element for the message adapter.
                 var node = doc.CreateElement("MessageAdapter");
@@ -624,10 +624,10 @@ namespace Intent.Gui
         // Clears the current document/session
         void Clear()
         {
-            IntentMessaging.Stop();
+            IntentRuntime.Stop();
             editor.Clear();
             console.Clear();
-            IntentMessaging.ClearAdapters();
+            IntentRuntime.ClearAdapters();
             isDirty = false;
         }
 
@@ -640,7 +640,7 @@ namespace Intent.Gui
         {
             try
             {
-                foreach (MessageAdapter adapter in IntentMessaging.ActiveAdapters)
+                foreach (MessageAdapter adapter in IntentRuntime.ActiveAdapters)
                 {
                     // Get the current script text
                     adapter.ApplySettings(editor.GetAdapterScript(adapter));
@@ -648,8 +648,8 @@ namespace Intent.Gui
                     // Make sure there were no settings errors
                     if (adapter.SettingsException != null)
                     {
-                        IntentMessaging.WriteLine("! Compile Error:");
-                        IntentMessaging.WriteLine((object)adapter.SettingsException.SourceCode);
+                        IntentRuntime.WriteLine("! Compile Error:");
+                        IntentRuntime.WriteLine((object)adapter.SettingsException.SourceCode);
 
                         // Add error status
                         var text = "Script compliation error! See console for details.";
@@ -672,10 +672,10 @@ namespace Intent.Gui
                 }
 
                 // Start messaging service to send any new init data
-                if (IntentMessaging.IsRunning)
+                if (IntentRuntime.IsRunning)
                 {
-                    IntentMessaging.Stop();
-                    IntentMessaging.Start();
+                    IntentRuntime.Stop();
+                    IntentRuntime.Start();
                 }
 
                 // Add successful compilation message
@@ -683,8 +683,8 @@ namespace Intent.Gui
             }
             catch (IronJS.Error.CompileError ce)
             {
-                IntentMessaging.WriteLine("! Compile Error:");
-                IntentMessaging.WriteLine((object)ce.SourceCode);
+                IntentRuntime.WriteLine("! Compile Error:");
+                IntentRuntime.WriteLine((object)ce.SourceCode);
 
                 // Add error status
                 var text = "Script compliation error! See console for details.";
@@ -692,7 +692,7 @@ namespace Intent.Gui
             }
             catch (Exception ex)
             {
-                IntentMessaging.WriteLine(ex);
+                IntentRuntime.WriteLine(ex);
             }
         }
 

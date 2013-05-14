@@ -73,9 +73,9 @@ namespace Intent.Gui
         private void Control_Load(object sender, EventArgs e)
         {
             // Couple the textbox to the Intent console output
-            IntentMessaging.ConsoleUpdated += (s, eArgs) =>
+            IntentRuntime.ConsoleUpdated += (s, eArgs) =>
             {
-                lock (consoleUpdates) consoleUpdates.Add(IntentMessaging.LastConsoleText);
+                lock (consoleUpdates) consoleUpdates.Add(IntentRuntime.LastConsoleText);
             };
 
             // Setup the console udpate timer to display updates in GUI thread

@@ -130,7 +130,7 @@ namespace Intent.Osc
             // Serial port is closed so nothing to do
             if (!port.IsOpen)
             {
-                IntentMessaging.WriteLine("! Incoming OSC but serial port '{0}' is closed attempting to reconnect...", port.PortName);
+                IntentRuntime.WriteLine("! Incoming OSC but serial port '{0}' is closed attempting to reconnect...", port.PortName);
                 Stop();
                 Start();
                 return;
@@ -249,11 +249,11 @@ namespace Intent.Osc
 
                     HasErrors = false;
 
-                    IntentMessaging.WriteLine("Sending DMX requests to serial port: {0}", port.PortName);
+                    IntentRuntime.WriteLine("Sending DMX requests to serial port: {0}", port.PortName);
                 }
                 catch (Exception ex)
                 {
-                    IntentMessaging.WriteLine(ex);
+                    IntentRuntime.WriteLine(ex);
                     HasErrors = true;
                 }
             }
@@ -268,7 +268,7 @@ namespace Intent.Osc
 
             if (port.IsOpen)
             {
-                IntentMessaging.WriteLine("Closing DMX serial port: {0}", port.PortName);
+                IntentRuntime.WriteLine("Closing DMX serial port: {0}", port.PortName);
                 port.Close();
             }
         }
@@ -278,7 +278,7 @@ namespace Intent.Osc
         {
             if (setupMessages == null) return;
             foreach (DmxMessage msg in setupMessages) WriteDmx(msg.Channel, msg.Value);
-            IntentMessaging.WriteLine("{0} DMX setup messages applied", setupMessages.Count);
+            IntentRuntime.WriteLine("{0} DMX setup messages applied", setupMessages.Count);
         }
 
         #endregion Operation
@@ -326,7 +326,7 @@ namespace Intent.Osc
                 var setupList = members["setup"] as ArrayObject;
 
                 if (setupList == null)
-                    IntentMessaging.WriteLine("DMX setup messages list is not formatted correctly:\n{0}\n", setupList);
+                    IntentRuntime.WriteLine("DMX setup messages list is not formatted correctly:\n{0}\n", setupList);
 
                 for (int i = 0; i < setupList.Length; i++)
                 {
@@ -337,7 +337,7 @@ namespace Intent.Osc
                 }
             }
 
-            IntentMessaging.WriteLine("DMX max output channel: {0}", maxChannel);
+            IntentRuntime.WriteLine("DMX max output channel: {0}", maxChannel);
         }
 
         #endregion Settings

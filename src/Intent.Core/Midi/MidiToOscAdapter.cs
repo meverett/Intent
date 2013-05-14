@@ -99,7 +99,7 @@ namespace Intent.Midi
         protected override void OnStart()
         {
             base.OnStart();
-            IntentMessaging.WriteLine("Sending MIDI => OSC out on: {0}", ipEndPoint);
+            IntentRuntime.WriteLine("Sending MIDI => OSC out on: {0}", ipEndPoint);
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace Intent.Midi
             catch (Exception ex)
             {
                 HasErrors = true;
-                IntentMessaging.WriteLine(ex);
+                IntentRuntime.WriteLine(ex);
             }
         }
 

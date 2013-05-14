@@ -91,7 +91,7 @@ namespace Intent.Gui
                 foreach (MessageAdapterControl control in adaptersPanel.Controls)
                 {
                     // Pulse errors if there are any
-                    control.HasErrors = IntentMessaging.IsRunning && showErrors && control.MessageAdapter.HasErrors;
+                    control.HasErrors = IntentRuntime.IsRunning && showErrors && control.MessageAdapter.HasErrors;
 
                     // Force the control to redraw
                     control.Invalidate();
@@ -117,7 +117,7 @@ namespace Intent.Gui
             var selected = (MessageAdapterInfo)availableAdapters.SelectedItem;
 
             // Add the message adapter to the messaging system
-            var adapter = IntentMessaging.AddAdapter(selected.Type);
+            var adapter = IntentRuntime.AddAdapter(selected.Type);
             AddMessageAdapterControl(adapter);            
         }
 
@@ -208,9 +208,9 @@ namespace Intent.Gui
             availableAdapters.Items.Clear();
             availableAdapters.BeginUpdate();
 
-            foreach (var type in IntentMessaging.GetAdapterTypes())
+            foreach (var type in IntentRuntime.GetAdapterTypes())
             {
-                var info = new MessageAdapterInfo(IntentMessaging.GetName(type), type);
+                var info = new MessageAdapterInfo(IntentRuntime.GetName(type), type);
                 availableAdapters.Items.Add(info);
             }
 
@@ -243,7 +243,7 @@ namespace Intent.Gui
 
             // Clear current data set
             Clear();
-            foreach (MessageAdapter adapter in IntentMessaging.ActiveAdapters) AddMessageAdapterControl(adapter);
+            foreach (MessageAdapter adapter in IntentRuntime.ActiveAdapters) AddMessageAdapterControl(adapter);
             ResumeLayout();
         }
 
@@ -253,7 +253,7 @@ namespace Intent.Gui
             control.MouseClick -= control_MouseClick;
             control.Removed -= control_Removed;
             control.UnbindAdapter();
-            IntentMessaging.RemoveAdapter(control.MessageAdapter);
+            IntentRuntime.RemoveAdapter(control.MessageAdapter);
             adaptersPanel.Controls.Remove(control);
             
             // Select another control

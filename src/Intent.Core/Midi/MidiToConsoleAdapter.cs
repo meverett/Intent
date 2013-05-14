@@ -21,7 +21,7 @@ namespace Intent.Midi
         /// <param name="value1">The MIDI message data byte 2 value.</param>
         protected override void OnMidiMessageReceived(Message msg, MidiMessageTypes type, int channel, int value1, int value2)
         {
-            IntentMessaging.WriteLine("{0,-14} channel:{1:###}\tvalue1: {2:###}\tvalue2 {3:###}", type, channel, value1, value2);
+            IntentRuntime.WriteLine("{0,-14} channel:{1:###}\tvalue1: {2:###}\tvalue2 {3:###}", type, channel, value1, value2);
         }
         //protected override void OnMidiMessageReceived(MidiMessage msg, MidiMessageTypes type, int channel, int value1, int value2)
         //{
@@ -39,7 +39,7 @@ namespace Intent.Midi
         protected override void OnMidiMessageRouted(MidiRoutingRule rule, Message msg, MidiMessageTypes type, 
                                                     int channel, int value1, int value2)
         {
-            IntentMessaging.WriteLine("=> {0}", rule.Name);
+            IntentRuntime.WriteLine("=> {0}", rule.Name);
             TriggerMessageSent();
         }
         //protected override void OnMidiMessageRouted(MidiRoutingRule rule, MidiMessage msg, MidiMessageTypes type, 

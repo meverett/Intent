@@ -4,16 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Threading;
+using System.IO;
 
 using IronJS;
 using IronJS.Hosting;
+using IronJS.Native;
 
 namespace Intent
 {
     /// <summary>
     /// The core intent messaging runtime.
     /// </summary>
-    public static class IntentMessaging
+    public static class IntentRuntime
     {
         #region Fields
 
@@ -111,78 +113,22 @@ namespace Intent
 
         #region Constructors
 
-        static IntentMessaging()
+        static IntentRuntime()
         {
+            #region Initialize Script Runtime
+
             script = new CSharp.Context();
-            script.SetGlobal("print", IronJS.Native.Utils.CreateFunction<Action<BoxedValue>>(script.Environment, 1, ScriptPrint));
+
+            // Add global script functions
+            script.SetGlobal("print", Utils.CreateFunction<Action<BoxedValue>>(script.Environment, 1, _Print));
+            script.SetGlobal("addAdapter", Utils.CreateFunction<Func<string, CommonObject, BoxedValue>>(script.Environment, 2, _AddAdapter));
+
+            #endregion Initialize Script Runtime
         }
 
         #endregion Constructors
 
         #region Methods
-
-        #region Information
-
-        /// <summary>
-        /// Gets the information for all available <see cref="MessageAdapter">message adapters</see>.
-        /// </summary>
-        /// <returns>An array containing the list of available message adapters.</returns>
-        public static MessageAdapterInfo[] GetAdapterInfo()
-        {
-            return (from t in GetAdapterTypes() select new MessageAdapterInfo(GetName(t), t)).ToArray();
-        }
-
-        /// <summary>
-        /// Gets the list of names of the available message adapters.
-        /// </summary>
-        /// <returns>A list of the available message adapters by name.</returns>
-        public static string[] GetAdapterNames()
-        {
-            List<string> names = new List<string>();
-            foreach (Type t in GetAdapterTypes()) names.Add(GetName(t));
-            return names.ToArray();
-        }
-
-        public static Type[] GetAdapterTypes()
-        {
-            // Go through available types
-            var adapterTypes = from t in Assembly.GetAssembly(typeof(MessageAdapter)).GetTypes()
-                               where t.GetCustomAttributes(typeof(MessageAdapterAttribute)).Count() > 0
-                               select t;
-
-            return adapterTypes.ToArray();
-        }
-
-        /// <summary>
-        /// Gets the name of a <see cref="MessageAdapter">Message Adapter</see>.
-        /// </summary>
-        /// <param name="adapter">The adapter who's name will be retrieved.</param>
-        /// <returns>The adapter's name if it was found, otherwise NULL.</returns>
-        public static string GetName(MessageAdapter adapter)
-        {
-            if (adapter == null) throw new ArgumentNullException("adapter");
-            return GetName(adapter.GetType());
-        }
-
-        /// <summary>
-        /// Gets the name of a <see cref="MessageAdapter">Message Adapter</see>.
-        /// </summary>
-        /// <param name="type">The adapter who's name will be retrieved.</param>
-        /// <returns>The adapter's name if it was found, otherwise NULL.</returns>
-        public static string GetName(Type type)
-        {
-            if (type == null) throw new ArgumentNullException("type");
-            var attribute = type.GetCustomAttributes(typeof(MessageAdapterAttribute), false).
-                            FirstOrDefault()
-                            as MessageAdapterAttribute;
-
-            // No adapter attribute, no name...
-            if (attribute == null) return null;
-
-            return attribute.Name;
-        }
-
-        #endregion Information
 
         #region Operation
 
@@ -269,6 +215,69 @@ namespace Intent
 
         #region Adapters
 
+        #region Information
+
+        /// <summary>
+        /// Gets the information for all available <see cref="MessageAdapter">message adapters</see>.
+        /// </summary>
+        /// <returns>An array containing the list of available message adapters.</returns>
+        public static MessageAdapterInfo[] GetAdapterInfo()
+        {
+            return (from t in GetAdapterTypes() select new MessageAdapterInfo(GetName(t), t)).ToArray();
+        }
+
+        /// <summary>
+        /// Gets the list of names of the available message adapters.
+        /// </summary>
+        /// <returns>A list of the available message adapters by name.</returns>
+        public static string[] GetAdapterNames()
+        {
+            List<string> names = new List<string>();
+            foreach (Type t in GetAdapterTypes()) names.Add(GetName(t));
+            return names.ToArray();
+        }
+
+        public static Type[] GetAdapterTypes()
+        {
+            // Go through available types
+            var adapterTypes = from t in Assembly.GetAssembly(typeof(MessageAdapter)).GetTypes()
+                               where t.GetCustomAttributes(typeof(MessageAdapterAttribute)).Count() > 0
+                               select t;
+
+            return adapterTypes.ToArray();
+        }
+
+        /// <summary>
+        /// Gets the name of a <see cref="MessageAdapter">Message Adapter</see>.
+        /// </summary>
+        /// <param name="adapter">The adapter who's name will be retrieved.</param>
+        /// <returns>The adapter's name if it was found, otherwise NULL.</returns>
+        public static string GetName(MessageAdapter adapter)
+        {
+            if (adapter == null) throw new ArgumentNullException("adapter");
+            return GetName(adapter.GetType());
+        }
+
+        /// <summary>
+        /// Gets the name of a <see cref="MessageAdapter">Message Adapter</see>.
+        /// </summary>
+        /// <param name="type">The adapter who's name will be retrieved.</param>
+        /// <returns>The adapter's name if it was found, otherwise NULL.</returns>
+        public static string GetName(Type type)
+        {
+            if (type == null) throw new ArgumentNullException("type");
+            var attribute = type.GetCustomAttributes(typeof(MessageAdapterAttribute), false).
+                            FirstOrDefault()
+                            as MessageAdapterAttribute;
+
+            // No adapter attribute, no name...
+            if (attribute == null) return null;
+
+            return attribute.Name;
+        }
+
+        #endregion Information
+
         #region Adding/Removing/Clearing
 
         /// <summary>
@@ -293,7 +302,7 @@ namespace Intent
                 // Add
                 adapters.Add(adapter);
 
-                IntentMessaging.WriteLine("Added => {0}", adapter.Name);
+                IntentRuntime.WriteLine("Added => {0}", adapter.Name);
 
                 // Start the adapter if we're already running
                 if (IsRunning) adapter.Start();
@@ -328,7 +337,7 @@ namespace Intent
                 // Add
                 adapters.Add(adapter);
 
-                IntentMessaging.WriteLine("Added => {0}", adapter.Name);
+                IntentRuntime.WriteLine("Added => {0}", adapter.Name);
 
                 // Start the adapter if we're already running
                 if (IsRunning) adapter.Start();
@@ -413,7 +422,7 @@ namespace Intent
             {
                 if (IsRunning) adapter.Stop();
                 adapters.Remove(adapter);
-                IntentMessaging.WriteLine("Removed => {0}", adapter.Name);
+                IntentRuntime.WriteLine("Removed => {0}", adapter.Name);
             }
 
             // Notify
@@ -436,7 +445,7 @@ namespace Intent
                 var adapter = adapters[index];
                 if (IsRunning) adapter.Stop();
                 adapters.RemoveAt(index);
-                IntentMessaging.WriteLine("Removed => {0}", adapter.Name);
+                IntentRuntime.WriteLine("Removed => {0}", adapter.Name);
             }
 
             // Notify
@@ -461,11 +470,169 @@ namespace Intent
 
         #region Script
 
-        // script: print() 
-        static void ScriptPrint(BoxedValue value)
+        #region Files
+
+        /// <summary>
+        /// Loads an Intent script file.
+        /// </summary>
+        /// <param name="filePath">The path to the script file to load.</param>
+        public static void LoadScript(string filePath)
         {
-            IntentMessaging.WriteLine(value.ClrBoxed);
+            #region Validate
+
+            if (string.IsNullOrEmpty(filePath))
+                throw new ArgumentNullException("filePath");
+
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException("File not found: " + filePath);
+
+            #endregion Validate
+
+            // Read the file in
+            var scriptText = File.ReadAllText(filePath);
+
+            // Attempt to load and parse it
+            try
+            {
+                script.Execute(scriptText);
+            }
+            catch (IronJS.Error.CompileError ce)
+            {
+                IntentRuntime.WriteLine("Error loading script: {0}\n{1}", filePath, ce);
+            }
         }
+
+        /// <summary>
+        /// Loads all Intent script files within a given directory.
+        /// </summary>
+        /// <param name="dirPath">The path to the directory to load all scripts from.</param>
+        public static void LoadAllScripts(string dirPath)
+        {
+            #region Validate
+
+            if (string.IsNullOrEmpty(dirPath))
+                throw new ArgumentNullException("dirPath");
+
+            if (!Directory.Exists(dirPath))
+                throw new DirectoryNotFoundException("Directory not found: " + dirPath);
+
+            #endregion Validate
+
+            // Get all script files in the directory and sort in preferential order
+            var scriptFiles = Directory.GetFiles(dirPath, "*.js")
+                                .OrderByDescending(f => Path.GetFileName(f).ToLower().StartsWith("setup"))
+                                .OrderByDescending(f => Path.GetFileName(f).ToLower().StartsWith("def."));
+
+            // Load all JavaScript files found in the directory
+            foreach (string filePath in scriptFiles) 
+            {
+                IntentRuntime.WriteLine("Loading {0}...", filePath); 
+                LoadScript(filePath);
+            }
+        }
+
+        #endregion Files
+
+        #region Script Utility
+
+        // Given the input script - make sure it will compile and return an object
+        static string FormatScript(string scriptText)
+        {
+            // Make sure that a variable declaration prepends the JavaScript or the parser will throw an error
+            if (!scriptText.StartsWith("var") && (scriptText.StartsWith("{") || scriptText.StartsWith("[")))
+                scriptText = "var data = " + scriptText;
+
+            return scriptText;
+        }
+
+        #endregion ScriptUtility
+
+        #region Global Functions
+
+        // script: print() 
+        static void _Print(BoxedValue value)
+        {
+            IntentRuntime.WriteLine(value.ClrBoxed);
+        }
+
+        // script: addAdapter(name, settings)
+        static BoxedValue _AddAdapter(string name, CommonObject settings)
+        {
+            #region Validate
+
+            if (string.IsNullOrEmpty(name))
+            {
+                //    throw new ArgumentNullException("name cannot be NULL or empty.");
+                IntentRuntime.WriteLine("addAdapter(): 'name' cannot be NULL or empty");
+                return TypeConverter.ToBoxedValue(false);
+            }
+            
+
+            if (settings == null)
+            {
+                //    throw new ArgumentNullException("settings cannot be NULL.");
+                IntentRuntime.WriteLine("addAdapter(): 'settings' cannot be NULL or empty");
+                return TypeConverter.ToBoxedValue(false);
+            }
+
+            // Get the adapter info for the given adapter name
+            var info = GetAdapterInfo().SingleOrDefault(a => a.Name.ToLower() == name.Trim().ToLower());
+
+            // Make sure an adapter by the provided name was found
+            if (info == null)
+            {
+                //throw new ArgumentException("Message Adapter '{0}' not found.", name);
+                IntentRuntime.WriteLine("addAdapter(): Message Adapter '{0}' not found.", name);
+                return TypeConverter.ToBoxedValue(false);
+            }
+
+            #endregion Validate
+
+            #region Add Adapter
+
+            // Add the new adapter and associate it with the supplied settings object
+            MessageAdapter adapter = null;
+
+            try
+            {
+                adapter = AddAdapter(name, settings);
+            }
+            catch (Exception ex)
+            {
+                IntentRuntime.WriteLine("addAdapter(): An error occured while adding the message adapter.\n{0}", ex);
+                return TypeConverter.ToBoxedValue(false);
+            }
+
+            #endregion Add Adapter
+
+            #region Bind Identifcation
+
+            // Add the adapter name to the script settings object
+            if (!adapter.CurrentSettings.Members.ContainsKey("adapter"))
+            {
+                adapter.CurrentSettings.Members.Add("adapter", adapter.Name);
+            }
+            else
+            {
+                adapter.CurrentSettings.Members["adapter"] = adapter.Name;
+            }
+
+            // Add the adapter's unique instance ID to the script settings object
+            if (!adapter.CurrentSettings.Members.ContainsKey("id"))
+            {
+                adapter.CurrentSettings.Members.Add("id", adapter.Id);
+            }
+            else
+            {
+                adapter.CurrentSettings.Members["id"] = adapter.Id;
+            }
+
+            #endregion Bind Identifcation
+
+            return TypeConverter.ToBoxedValue(true);
+        }
+
+        #endregion Global Functions
 
         #endregion Script
 

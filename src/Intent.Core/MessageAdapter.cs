@@ -17,9 +17,18 @@ namespace Intent
     {
         #region Fields
 
+        // Used to provide adapters with a unique ID
+        static object idLock = new object();
+        static int adapterId = 0;
+
         #endregion Fields
 
         #region Properties
+
+        /// <summary>
+        /// Gets the adapter's unique instance ID.
+        /// </summary>
+        public int Id { get; internal set; }
 
         /// <summary>
         /// Gets whether or not the adapter is currently running.
@@ -29,7 +38,7 @@ namespace Intent
         /// <summary>
         /// Gets the name of the message adapter.
         /// </summary>
-        public string Name { get { return IntentMessaging.GetName(this); } }
+        public string Name { get { return IntentRuntime.GetName(this); } }
 
         /// <summary>
         /// When overriden in derived classes, returns the default settings
@@ -39,7 +48,7 @@ namespace Intent
         {
             get
             {
-                return IntentMessaging.Script.Execute(FormatSettingsScript(DefaultSettingsScript)) as CommonObject;
+                return IntentRuntime.Script.Execute(FormatSettingsScript(DefaultSettingsScript)) as CommonObject;
             }
         }
 
@@ -94,6 +103,15 @@ namespace Intent
 
         #region Constructors
 
+        public MessageAdapter()
+        {
+            // Assign a new unique adapter ID
+            lock (idLock)
+            {
+                Id = ++adapterId;
+            }
+        }
+
         #endregion Constructors
 
         #region Methods
@@ -103,7 +121,7 @@ namespace Intent
         public void Start()
         {
             if (IsRunning) return;
-            IntentMessaging.WriteLine("Starting: " + Name);
+            IntentRuntime.WriteLine("Starting: " + Name);
             OnStart();
             IsRunning = true;
         }
@@ -113,7 +131,7 @@ namespace Intent
         public void Stop()
         {
             if (!IsRunning) return;
-            IntentMessaging.WriteLine("Stopping: " + Name);
+            IntentRuntime.WriteLine("Stopping: " + Name);
             OnStop();
             IsRunning = false;
         }
@@ -175,14 +193,14 @@ namespace Intent
             // Parse the settings javascript
             try
             {
-                var settings = (CommonObject)IntentMessaging.Script.Execute(FormatSettingsScript(settingsScript));
+                var settings = (CommonObject)IntentRuntime.Script.Execute(FormatSettingsScript(settingsScript));
 
                 // Pass the parsed settings data down for custom consumption
                 ApplySettings(settings);
                 SettingsException = null;
                 HasErrors = false;
             }
-            catch (IronJS.Error.CompileError ce)
+            catch (Error.CompileError ce)
             {
                 HasErrors = true;
                 SettingsException = ce;

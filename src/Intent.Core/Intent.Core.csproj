@@ -70,7 +70,7 @@
   <ItemGroup>
     <Compile Include="Data\ColorRGB.cs" />
     <Compile Include="Dmx\DmxMessage.cs" />
-    <Compile Include="IntentMessaging.cs" />
+    <Compile Include="IntentRuntime.cs" />
     <Compile Include="MessageAdapterInfo.cs" />
     <Compile Include="Midi\MidiDeviceInfo.cs" />
     <Compile Include="Osc\OscToDmxAdapter.cs" />
