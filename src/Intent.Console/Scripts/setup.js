@@ -21,6 +21,9 @@ var lights = {
         new PuckQ12(4), new PuckQ12(5), new PuckQ12(6), new PuckQ12(7),
     ],
 
+    // Master light intensity
+    master: 1,
+
     // Whether or not group mode has been enabled
     groupMode: false,
 
@@ -55,7 +58,8 @@ var CC = {
     tilt:       13,     // motor tilt
     motorSpeed: 14,     // motor motor speed
     dimmer:     15,     // motor color dimmer/strobe
-    groupMode:  127,    // set control group
+    master:     126,    // master lighting intenisty level
+    groupMode:  127,    // enable/disable group mode
 };
 
 // Converts a MIDI CC value into a light property name
@@ -75,14 +79,45 @@ var setValueFromCC = function (light, cc, value) {
     light[getParameterFromCC(cc)] = value;
 };
 
+// Adds the HSV DMX values to a DMX update state for a particular light
+var addLightHSV = function(state, light) {
+    // Add the light's RGB channels for update
+    state.channel.push(light.redDmx());
+    state.channel.push(light.greenDmx());
+    state.channel.push(light.blueDmx());
+    state.value.push(light.h + ";" + light.s + ";" + (light.v * light.intensity * lights.master));
+};
+
+// Adds the RGB DMX values to a DMX update state for a particular light
+var addLightRGB = function (state, light) {
+    // Add RGB channels
+    state.channel.push(light.redDmx());
+    state.channel.push(light.greenDmx());
+    state.channel.push(light.blueDmx());
+
+    // Add RGB values
+    state.value.push(parseInt(light.r * light.intensity * lights.master));
+    state.value.push(parseInt(light.g * light.intensity * lights.master));
+    state.value.push(parseInt(light.b * light.intensity * lights.master));
+};
+
+// Adds the Amber/White DMX values to a DMX update state for a particular light
+var addLightAW = function (state, light) {
+    // Add AW channels
+    state.channel.push(light.amberDmx());
+    state.channel.push(light.whiteDmx());
+
+    // Add RGB values
+    state.value.push(parseInt(light.a * light.intensity * lights.master));
+    state.value.push(parseInt(light.w * light.intensity * lights.master));
+};
+
 // MIDI CC handler for light settings
 var updateFromCC = function (type, channel, cc, value) {
     // Is this an update to the lighting control groups?
     if (cc == CC.groupMode) {
         // Update the lighting group mode
         lights.groupMode = value < 64 ? false : true;
-
-        print("updating group mode: " + lights.groupMode);
 
         // Nothing to update light-wise - this just a control scheme update message
         return null;
@@ -91,10 +126,13 @@ var updateFromCC = function (type, channel, cc, value) {
     // Get the current control group configuration
     var group = lights.groupMode ? lights.groups[channel - 1] : [channel];
 
-    print("group.length = " + group.length);
-
     // Create the outgoing lighting state
     var state = { channel: [], value: [] };
+
+    // Adjust master light intensity
+    if (cc == CC.master) {
+        lights.master = value / 127;
+    }
 
     // Update each light in the group
     for (var i = 0; i < group.length; i++) {
@@ -102,58 +140,54 @@ var updateFromCC = function (type, channel, cc, value) {
         var light = lights.all[group[i] - 1];   // get light
         setValueFromCC(light, cc, value);       // update local light state/value
 
-        // If this was a color update...
-        if (cc <= CC.mode) {
+        // If this was a color update of some sort...
+        if (cc <= CC.mode || cc == CC.master) {
             // Update lighting color mode as necessary
             if (cc == CC.mode) {
                 light.mode = value < 64 ? HSV : RGB;
             }
 
-            // Update HSV mode
-            if (light.mode == HSV && (cc <= CC.v || cc == CC.mode)) {
-                // Add the light's RGB channels for update
-                state.channel.push(light.redDmx());
-                state.channel.push(light.greenDmx());
-                state.channel.push(light.blueDmx());
-                state.value.push(light.h + ";" + light.s + ";" + (light.v * light.intensity));
+            // Update HSV (direct change, intensity change, or light mode change)
+            if (light.mode == HSV && (cc <= CC.v || cc == CC.intensity || cc == CC.master || cc == CC.mode)) {
+                addLightHSV(state, light);
             }
-            // Update RGB mode
+            // Update RGB
             else if (light.mode == RGB && cc >= CC.r) {
                 // If this is an intensity or mode adjustment all colors must be updated
-                if (cc == CC.intensity || cc == CC.mode) {
-                    // Add RGB channels
-                    state.channel.push(light.redDmx());
-                    state.channel.push(light.greenDmx());
-                    state.channel.push(light.blueDmx());
-
-                    // Add RGB values
-                    state.value.push(parseInt(light.r * light.intensity));
-                    state.value.push(parseInt(light.g * light.intensity));
-                    state.value.push(parseInt(light.b * light.intensity));
-                }
-                // Treat amber/white LED updates separate from RGB
-                else if (cc == CC.a || cc == CC.w) {
-                    state.channel.push(cc == CC.a ? light.amberDmx() : light.whiteDmx());
-                    state.value.push(parseInt((cc == CC.a ? light.a : light.w) * light.intensity));
+                if (cc == CC.intensity || cc == CC.master || cc == CC.mode) {
+                    addLightRGB(state, light);
                 }
                 // Otherwise just update single color channel
                 else {
                     switch (cc) {
                         case CC.r:
                             state.channel.push(light.redDmx());
-                            state.value.push(parseInt(light.r * light.intensity));
+                            state.value.push(parseInt(light.r * light.intensity * lights.master));
                             break;
 
                         case CC.g:
                             state.channel.push(light.greenDmx());
-                            state.value.push(parseInt(light.g * light.intensity));
+                            state.value.push(parseInt(light.g * light.intensity * lights.master));
                             break;
 
                         case CC.b:
                             state.channel.push(light.blueDmx());
-                            state.value.push(parseInt(light.b * light.intensity));
+                            state.value.push(parseInt(light.b * light.intensity * lights.master));
                             break;
                     };
+                }
+            }
+
+            // Treat amber/white LED updates separately
+            if ((light.a || light.w) && (cc == CC.a || cc == CC.w || cc == CC.intensity || cc == CC.master)) {
+                // Update both amber and white
+                if (cc == CC.intensity || cc == CC.master) {
+                    addLightAW(state, light);
+                }
+                // Update amber OR white
+                else {
+                    state.channel.push(cc == CC.a ? light.amberDmx() : light.whiteDmx());
+                    state.value.push(parseInt((cc == CC.a ? light.a : light.w) * light.intensity * lights.master));
                 }
             }
         }
