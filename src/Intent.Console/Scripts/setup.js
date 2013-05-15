@@ -29,11 +29,21 @@ var lights = {
 
     // Different control groups of lighting channels/fixtures
     groups: [
-        [1, 2, 3, 4, 5, 6, 7, 8],   // all lights
-        [1, 2, 5, 6],               // left light tree
-        [3, 4, 7, 8],               // right light tree
-        [5, 6, 7, 8],               // top lights
-        [1, 2, 3, 4],               // bottom lights
+        [1, 2, 3, 4, 5, 6, 7, 8],   // 1  all lights
+        [1, 2, 5, 6],               // 2  left
+        [3, 4, 7, 8],               // 3  right
+        [5, 6, 7, 8],               // 4  top
+        [1, 2, 3, 4],               // 5  bottom
+        [3, 4, 5, 6],               // 6  top left, bottom right
+        [1, 2, 7, 8],               // 7  bottom left, top right
+        [1, 3],                     // 8  bottom 1st & 3rd
+        [2, 4],                     // 9  bottom 2nd & 4th
+        [5, 7],                     // 10 top 1st and 3rd
+        [6, 8],                     // 11 top 2nd and 4th
+        [1, 4],                     // 12 bottom 1st and 4th
+        [2, 3],                     // 13 bottom 2nd and 3rd
+        [5, 8],                     // 14 top 1st and 4th
+        [6, 7],                     // 15 top 2nd and 3rd
     ],
 };
 
