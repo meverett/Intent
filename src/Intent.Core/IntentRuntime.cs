@@ -30,6 +30,7 @@ namespace Intent
 
         // Current list of loaded and configured message adapters.
         static List<MessageAdapter> adapters = new List<MessageAdapter>();
+        static Dictionary<int, MessageAdapter> adaptersById = new Dictionary<int, MessageAdapter>();
 
         #endregion Adapters;
 
@@ -276,6 +277,16 @@ namespace Intent
             return attribute.Name;
         }
 
+        /// <summary>
+        /// Gets a message adapter instance given its instance ID.
+        /// </summary>
+        /// <param name="id">The instance ID of the adapter to get.</param>
+        /// <returns>The adapter if it is found, otherwise NULL.</returns>
+        public static MessageAdapter GetAdapterById(int id)
+        {
+            return adaptersById.ContainsKey(id) ? adaptersById[id] : null;
+        }
+
         #endregion Information
 
         #region Adding/Removing/Clearing
@@ -301,6 +312,8 @@ namespace Intent
 
                 // Add
                 adapters.Add(adapter);
+                if (!adaptersById.ContainsKey(adapter.Id)) adaptersById.Add(adapter.Id, adapter);
+                else adaptersById[adapter.Id] = adapter;
 
                 IntentRuntime.WriteLine("Added => {0}", adapter.Name);
 
@@ -336,6 +349,8 @@ namespace Intent
 
                 // Add
                 adapters.Add(adapter);
+                if (!adaptersById.ContainsKey(adapter.Id)) adaptersById.Add(adapter.Id, adapter);
+                else adaptersById[adapter.Id] = adapter;
 
                 IntentRuntime.WriteLine("Added => {0}", adapter.Name);
 
@@ -422,6 +437,7 @@ namespace Intent
             {
                 if (IsRunning) adapter.Stop();
                 adapters.Remove(adapter);
+                adaptersById.Remove(adapter.Id);
                 IntentRuntime.WriteLine("Removed => {0}", adapter.Name);
             }
 
@@ -445,6 +461,7 @@ namespace Intent
                 var adapter = adapters[index];
                 if (IsRunning) adapter.Stop();
                 adapters.RemoveAt(index);
+                adaptersById.Remove(adapter.Id);
                 IntentRuntime.WriteLine("Removed => {0}", adapter.Name);
             }
 
@@ -461,6 +478,7 @@ namespace Intent
             {
                 foreach (var adapter in adapters) adapter.Stop();
                 adapters.Clear();
+                adaptersById.Clear();
             }
         }
 
@@ -563,7 +581,7 @@ namespace Intent
             if (string.IsNullOrEmpty(name))
             {
                 //    throw new ArgumentNullException("name cannot be NULL or empty.");
-                IntentRuntime.WriteLine("addAdapter(): 'name' cannot be NULL or empty");
+                IntentRuntime.WriteLine("addAdapter(name, settings): 'name' cannot be NULL or empty");
                 return TypeConverter.ToBoxedValue(false);
             }
             
@@ -571,7 +589,7 @@ namespace Intent
             if (settings == null)
             {
                 //    throw new ArgumentNullException("settings cannot be NULL.");
-                IntentRuntime.WriteLine("addAdapter(): 'settings' cannot be NULL or empty");
+                IntentRuntime.WriteLine("addAdapter(name, settings): 'settings' cannot be NULL or empty");
                 return TypeConverter.ToBoxedValue(false);
             }
 
@@ -582,7 +600,7 @@ namespace Intent
             if (info == null)
             {
                 //throw new ArgumentException("Message Adapter '{0}' not found.", name);
-                IntentRuntime.WriteLine("addAdapter(): Message Adapter '{0}' not found.", name);
+                IntentRuntime.WriteLine("addAdapter(name, settings): Message Adapter '{0}' not found.", name);
                 return TypeConverter.ToBoxedValue(false);
             }
 

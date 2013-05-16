@@ -1,5 +1,8 @@
 ﻿// Create the MIDI to OSC adapter
 var midiToOsc = {
+    // MIDI Input device
+    device: "02. Internal MIDI",
+
     routing: {
         // Update from MIDI Control Change messages
         "Control Change": {

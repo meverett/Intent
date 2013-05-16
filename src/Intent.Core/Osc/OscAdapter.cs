@@ -46,23 +46,10 @@ namespace Intent.Osc
         #region Constructors
 
         /// <summary>
-        /// Creates an OSC message adapter listening on the local loopback.
+        /// Creates an OSC message adapter listening on a specified IP endpoint.
         /// </summary>
-        public OscAdapter() : this (null) { }
-
-        /// <summary>
-        /// Creates an OSC message adapter listening on the given IP endpoint.
-        /// </summary>
-        /// <param name="ipEndPoint">The IP endpoint to listen for messages on.</param>
-        public OscAdapter(IPEndPoint ipEndPoint)
+        public OscAdapter()
         {
-            if (ipEndPoint == null) ipEndPoint = localEndPoint;
-            this.ipEndPoint = ipEndPoint;
-
-            // Create the OSC server to listen for incoming messages
-            server = new OscServer(TransportType.Udp, ipEndPoint.Address, ipEndPoint.Port);
-            server.FilterRegisteredMethods = false;
-            server.ConsumeParsingExceptions = false;
         }
 
         #endregion Constructors
@@ -124,7 +111,31 @@ namespace Intent.Osc
         /// </summary>
         protected override void OnStart()
         {
-            if (server.IsRunning) return;
+            // Nothing to do if we're already running...
+            if (server != null && server.IsRunning) return;
+
+            // Get IP address from script settings object or use default
+            var members = CurrentSettings != null ? CurrentSettings.Members : null;
+            if (members != null && (members.ContainsKey("ip") || members.ContainsKey("port")))
+            {
+                var address = members.ContainsKey("ip") ? (string)members["ip"] : localEndPoint.Address.ToString();
+                int port = members.ContainsKey("port") ? Convert.ToInt32(members["port"]) : localEndPoint.Port;
+                var ipAddress = IPAddress.Parse(address);
+                this.ipEndPoint = new IPEndPoint(ipAddress, port);
+            }
+            // Otherwise use local loopback defaults
+            else
+            {
+                this.ipEndPoint = localEndPoint;
+            }
+
+            // Clean up any old server
+            if (server != null) server.MessageReceived -= server_MessageReceived;
+
+            // Create the OSC server to listen for incoming messages
+            server = new OscServer(TransportType.Udp, ipEndPoint.Address, ipEndPoint.Port);
+            server.FilterRegisteredMethods = false;
+            server.ConsumeParsingExceptions = false;
             server.MessageReceived += server_MessageReceived;
             server.Start();
             IntentRuntime.WriteLine("Started listening for OSC input events on: {0}", ipEndPoint);

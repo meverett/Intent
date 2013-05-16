@@ -226,6 +226,41 @@ namespace Intent
 
         #endregion Settings/Configuration
 
+        #region Script
+
+        // Sends an outgoing message from script on behalf of the message adapter
+        static void _SendMessage(int id, CommonObject message)
+        {
+            MessageAdapter adapter;
+
+            #region Validate
+
+            if (message == null)
+            {
+                IntentRuntime.WriteLine("sendMessage(id, message): message parameter cannot be NULL");
+                return;
+            }
+
+            // Get the adapter in question
+            adapter = IntentRuntime.GetAdapterById(id);
+
+            if (adapter == null)
+            {
+                IntentRuntime.WriteLine("sendMessage(id, message): message adapter ID '{0}' not found.");
+                return;
+            }
+
+            #endregion Validate
+        }
+
+        /// <summary>
+        /// When overriden in a derived class sends a message on behalf of a script invocation.
+        /// </summary>
+        /// <param name="message">The script message to send.</param>
+        protected virtual void OnSendMessage(CommonObject message) { }
+
+        #endregion Script
+
         #endregion Methods
     }
 }

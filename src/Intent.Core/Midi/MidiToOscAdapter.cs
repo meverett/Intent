@@ -56,37 +56,11 @@ namespace Intent.Midi
         #region Constructors
 
         /// <summary>
-        /// Creates a MIDI relay using the local loopback/localhost as the IP endpoint and
-        /// the LoopBe software MIDI interface for MIDI event capture.
+        /// Creates a MIDI relay using the MIDI device and <see cref="IPEndPoint">IP endpoint</see>
+        /// specified from the script settings object.
         /// </summary>
-        public MidiToOscAdapter() : this(null, localEndPoint) { }
-
-        /// <summary>
-        /// Creates a MIDI relay using the specified MIDI device and the
-        /// local loopback/localhost as the IP endpoint.
-        /// </summary>
-        /// <param name="deviceName">The name of the MIDI device to use to capture MIDI events for relay.</param>
-        public MidiToOscAdapter(string deviceName) : this(deviceName, localEndPoint) { }
-
-        /// <summary>
-        /// Creates a MIDI relay using the specified IP endpoint and the LoopBe software MIDI device
-        /// for MIDI event capture.
-        /// </summary>
-        /// <param name="ipEndPoint">The IP endpoint to use.</param>
-        public MidiToOscAdapter(IPEndPoint ipEndPoint) : this(null, ipEndPoint) { }
-
-        /// <summary>
-        /// Creates a MIDI relay using the supplied <see cref="IPEndPoint">IP endpoint</see>.
-        /// </summary>
-        /// <remarks>
-        /// Supplying a NULL device name defaults to using the LoopBe software MIDI driver.
-        /// </remarks>
-        /// <param name="deviceName">The name of the MIDI device to use to capture MIDI events for relay.</param>
-        /// <param name="ipEndPoint">The IP endpoint to use.</param>
-        public MidiToOscAdapter(string deviceName, IPEndPoint ipEndPoint) : base(deviceName)
+        public MidiToOscAdapter()
         {
-            // Assign paramters
-            this.ipEndPoint = ipEndPoint;
             sb = new StringBuilder();
         }
 
@@ -98,6 +72,21 @@ namespace Intent.Midi
 
         protected override void OnStart()
         {
+            // Get IP address from script settings object or use default
+            var members = CurrentSettings != null ? CurrentSettings.Members : null;
+            if (members != null && (members.ContainsKey("ip") || members.ContainsKey("port")))
+            {
+                var address = members.ContainsKey("ip") ? (string)members["ip"] : localEndPoint.Address.ToString();
+                int port = members.ContainsKey("port") ? Convert.ToInt32(members["port"]) : localEndPoint.Port;
+                var ipAddress = IPAddress.Parse(address);
+                this.ipEndPoint = new IPEndPoint(ipAddress, port);
+            }
+            // Otherwise use local loopback defaults
+            else
+            {
+                this.ipEndPoint = localEndPoint;
+            }
+
             base.OnStart();
             IntentRuntime.WriteLine("Sending MIDI => OSC out on: {0}", ipEndPoint);
         }

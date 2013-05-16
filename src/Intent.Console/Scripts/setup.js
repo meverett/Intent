@@ -44,7 +44,7 @@ var lights = {
         [2, 3],                     // 13 bottom 2nd and 3rd
         [5, 8],                     // 14 top 1st and 4th
         [6, 7],                     // 15 top 2nd and 3rd
-    ],
+    ],  
 };
 
 // Add a convenient way to address all lights in a single list
@@ -67,8 +67,8 @@ var CC = {
     tilt:       12,     // motor tilt
     motorSpeed: 13,     // motor motor speed
     dimmer:     14,     // motor color dimmer/strobe
-    master:     126,    // master lighting intenisty level
-    groupMode:  127,    // enable/disable group mode
+    master:     118,    // master lighting intenisty level
+    groupMode:  119,    // enable/disable group mode
 };
 
 // Converts a MIDI CC value into a light property name
@@ -114,6 +114,13 @@ var updateFromCC = function (type, channel, cc, value) {
     for (var i = 0; i < group.length; i++) {
         // Update light according to MIDI channel 1, 2, 3, 4 = Flurry lights | 5, 6, 7, 8 = Puck Lights
         var lightIndex = group[i] - 1;
+
+        // Make sure we have a light defined
+        if (lightIndex >= lights.all.length) {
+            print("light index not found: " + lightIndex);
+            continue;
+        }
+
         var light = lights.all[lightIndex]; // get light
         setValueFromCC(light, cc, value);   // update local light state/value
 

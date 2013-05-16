@@ -56,29 +56,10 @@ namespace Intent.Midi
         #region Constructors
 
         /// <summary>
-        /// Creates a MIDI relay using the local loopback/localhost as the IP endpoint and
-        /// the LoopBe software MIDI interface for MIDI event capture.
+        /// Creates a MIDI adapter that listens for MIDI events.
         /// </summary>
-        public MidiAdapter() : this(null) { }
-
-        /// <summary>
-        /// Creates a MIDI adapter that listens for MIDI events on the specified
-        /// MIDI device.
-        /// </summary>
-        /// <param name="deviceName">The name of the MIDI device to use to capture MIDI events.</param>
-        public MidiAdapter(string deviceName)
+        public MidiAdapter()
         {
-            // Assign paramters
-            DeviceName = !string.IsNullOrEmpty(deviceName) ? deviceName : "LoopBe"; // default to LoopBe MIDI if NULL
-
-            // Construct the MIDI input device
-            string deviceNameLower = DeviceName.ToLower();
-            midi = InputDevice.InstalledDevices.FirstOrDefault(d => d.Name.ToLower().Contains(deviceNameLower));
-
-            // Make sure the device was found
-            if (midi == null)
-                throw new ArgumentException("MIDI input device not found: " + deviceName);
-
             // Initialize routing rules
             routingRules = new List<MidiRoutingRule>();
         }
@@ -203,10 +184,22 @@ namespace Intent.Midi
         /// </summary>
         protected override void OnStart()
         {
-            if (midi.IsOpen) return;
+            // Initialize MIDI device as needed - attempt to pull device name from script settings object
+            if (midi == null)
+            {
+                var members = CurrentSettings != null ? CurrentSettings.Members : null;
+                DeviceName = members != null && members.ContainsKey("device") ? (string)members["device"] : "LoopBe";
 
-            // Load default routing rules
-            if ((routingRules == null || routingRules.Count == 0) && File.Exists("midi.js")) ApplySettings(File.ReadAllText("midi.js"));
+                // Construct the MIDI input device
+                string deviceNameLower = DeviceName.ToLower();
+                midi = InputDevice.InstalledDevices.FirstOrDefault(d => d.Name.ToLower().Contains(deviceNameLower));
+
+                // Make sure the device was found
+                if (midi == null)
+                    throw new ArgumentException("MIDI input device not found: " + DeviceName);
+            }
+
+            if (midi.IsOpen) return;
 
             // Hook up MIDI handlers
             midi.NoteOn         += midiDevice_NoteOn;

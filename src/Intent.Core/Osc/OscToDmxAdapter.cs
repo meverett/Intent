@@ -53,37 +53,10 @@ namespace Intent.Osc
         #region Constructors
 
         /// <summary>
-        /// Creates an OSC to DMX message adapter using localhost/loopback to listen
-        /// for OSC messages on and sends them to the first available serial port as
-        /// DMX command requests.
-        /// </summary>
-        public OscToDmxAdapter() : this (null, null) { }
-
-        /// <summary>
-        /// Creates an OSC to DMX message adapter using the provided IP endpoint to
-        /// listen for OSC messages on and sends them to the first avilable serial port
-        /// as DMX command requests.
-        /// </summary>
-        /// <param name="oscEndPoint">The IP endpoint to listen for incoming OSC messages on.</param>
-        public OscToDmxAdapter(IPEndPoint oscEndPoint) : this(oscEndPoint, null) { }
-
-        /// <summary>
-        /// Creates an OSC to DMX message adapter using localhost/loopback to listen
-        /// for OSC messages on and sends them to the specified serial port as DMX requests.
-        /// </summary>
-        /// <param name="oscEndPoint">The IP endpoint to listen for incoming OSC messages on.</param>
-        public OscToDmxAdapter(string dmxPort) : this(null, dmxPort) { }
-
-        /// <summary>
         /// Creates an OSC to DMX message adapter.
         /// </summary>
-        /// <param name="oscEndPoint">The IP endpoint to listen for incoming OSC messages on.</param>
-        /// <param name="dmxPort">The name of the serial port to send packaged DMX commands to.</param>
-        public OscToDmxAdapter(IPEndPoint oscEndPoint, string dmxPort)
-            : base(oscEndPoint)
+        public OscToDmxAdapter()
         {
-            // Create the internal serial port
-            this.dmxPort = dmxPort;
             port = new SerialPort();
             port.BaudRate = 250000;
             port.DataReceived += port_DataReceived;
@@ -212,10 +185,14 @@ namespace Intent.Osc
         /// </summary>
         protected override void OnStart()
         {
-            base.OnStart();
+            // Nothing to do we're already running
+            if (port != null && port.IsOpen) return;
 
-            // Load configuration
-            if (maxChannel == 0 && File.Exists("dmx.js")) ApplySettings(File.ReadAllText("dmx.js"));
+            // Get the DMX port from script settings or use default
+            var members = CurrentSettings != null ? CurrentSettings.Members : null;
+            dmxPort = members != null && members.ContainsKey("serial") ? (string)members["serial"] : "COM3";
+
+            base.OnStart();
                 
             if (!port.IsOpen)
             {

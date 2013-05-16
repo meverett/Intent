@@ -5,7 +5,7 @@ int maxChannel = 0;
 
 void setup() {
   // start serial port
-  Serial.begin(250000);
+  Serial.begin(250000);  
   while (!Serial) { ; } // wait for serial port to connect. Needed for Leonardo only  
   
   // Ask for the max DMX channel
