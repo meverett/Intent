@@ -130,7 +130,7 @@ namespace Intent.Midi
             #endregion Extract MIDI message data
 
             // Let subclasses know a MIDI message was received
-            OnMidiMessageReceived(msg, type, channel, value1, value2);
+            OnMidiMessageReceived(type, channel, value1, value2);
 
             // Notify
             TriggerMessageReceived();
@@ -147,7 +147,7 @@ namespace Intent.Midi
                 if (rule.IsMatch(msg))
                 {
                     // Let subclasses know a MIDI message routing rule matched
-                    OnMidiMessageRouted(rule, msg, type, channel, value1, value2);
+                    OnMidiMessageRouted(rule, type, channel, value1, value2);
                 }
             }
         }
@@ -155,25 +155,21 @@ namespace Intent.Midi
         /// <summary>
         /// When overriden in derived classes, handles the reception of a MIDI message.
         /// </summary>
-        /// <param name="msg">The MIDI message that was received.</param>
         /// <param name="type">The MIDI message type.</param>
         /// <param name="channel">The MIDI channel the message was received on.</param>
         /// <param name="value1">The MIDI message data byte 1 value.</param>
         /// <param name="value1">The MIDI message data byte 2 value.</param>
-        protected virtual void OnMidiMessageReceived(Message msg, MidiMessageTypes type,
-                                                        int channel, int value1, int value2) { }
+        protected virtual void OnMidiMessageReceived(MidiMessageTypes type, int channel, int value1, int value2) { }
         
         /// <summary>
         /// When overriden in derived classes, handles the reception of a MIDI message
         /// that satisfied a routing rule.
         /// </summary>
-        /// <param name="msg">The MIDI message that was received.</param>
         /// <param name="type">The MIDI message type.</param>
         /// <param name="channel">The MIDI channel the message was received on.</param>
         /// <param name="value1">The MIDI message data byte 1 value.</param>
         /// <param name="value1">The MIDI message data byte 2 value.</param>
-        protected virtual void OnMidiMessageRouted(MidiRoutingRule rule, Message msg, MidiMessageTypes type, 
-                                                    int channel, int value1, int value2) { }
+        protected virtual void OnMidiMessageRouted(MidiRoutingRule rule, MidiMessageTypes type, int channel, int value1, int value2) { }
         
         #endregion Event Handlers
 

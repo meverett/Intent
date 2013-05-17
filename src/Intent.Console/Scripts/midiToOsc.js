@@ -16,7 +16,10 @@ var midiToOsc = {
             address: "/lights",
             data: updateFromCC
         }
-    }
+    },
+
+    // Update loop
+    update: midiUpdate
 };
 
 addAdapter(adapters.midiToOsc, midiToOsc);

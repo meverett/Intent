@@ -342,7 +342,7 @@ namespace Intent.Midi
         #region Parsing Utilities
 
         // Parses a MIDI message type enum value from raw text
-        MidiMessageTypes ParseMidiMessageType(string text)
+        public static MidiMessageTypes ParseMidiMessageType(string text)
         {
             MidiMessageTypes type;
 
@@ -353,7 +353,7 @@ namespace Intent.Midi
         }
 
         // Parses a MIDI channel value from raw text
-        int ParseMidiChannel(string text)
+        public static int ParseMidiChannel(string text)
         {
             int channel;
 
@@ -364,7 +364,7 @@ namespace Intent.Midi
         }
 
         // Parses a MIDI data value from raw text
-        int ParseMidiValue(string text)
+        public static int ParseMidiValue(string text)
         {
             int value; Pitch pitch = Pitch.A0;
             bool isValue, isPitch = false;

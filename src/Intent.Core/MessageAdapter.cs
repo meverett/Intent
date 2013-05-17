@@ -228,29 +228,36 @@ namespace Intent
 
         #region Script
 
-        // Sends an outgoing message from script on behalf of the message adapter
-        static void _SendMessage(int id, CommonObject message)
+        // sendMessage(id, message); Sends an outgoing message from script on behalf of the message adapter
+        internal static void _SendMessage(BoxedValue boxedId, CommonObject message)
         {
+            // Don't send messages if we're not running
+            if (!IntentRuntime.IsRunning) return;
+
             MessageAdapter adapter;
 
             #region Validate
 
-            if (message == null)
-            {
-                IntentRuntime.WriteLine("sendMessage(id, message): message parameter cannot be NULL");
-                return;
-            }
-
             // Get the adapter in question
+            var id = TypeConverter.ToInt32(boxedId);
             adapter = IntentRuntime.GetAdapterById(id);
 
             if (adapter == null)
             {
-                IntentRuntime.WriteLine("sendMessage(id, message): message adapter ID '{0}' not found.");
+                IntentRuntime.WriteLine("sendMessage(id, message): message adapter ID '{0}' not found.", id);
+                return;
+            }
+
+            if (message == null)
+            {
+                IntentRuntime.WriteLine("{0}:{1} -> sendMessage(id, message): message parameter cannot be NULL", adapter.Name, adapter.Id);
                 return;
             }
 
             #endregion Validate
+
+            // Pass on to subclass to send
+            adapter.OnSendMessage(message);
         }
 
         /// <summary>

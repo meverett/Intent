@@ -123,6 +123,7 @@ namespace Intent
             // Add global script functions
             script.SetGlobal("print", Utils.CreateFunction<Action<BoxedValue>>(script.Environment, 1, _Print));
             script.SetGlobal("addAdapter", Utils.CreateFunction<Func<string, CommonObject, BoxedValue>>(script.Environment, 2, _AddAdapter));
+            script.SetGlobal("sendMessage", Utils.CreateFunction<Action<BoxedValue, CommonObject>>(script.Environment, 2, MessageAdapter._SendMessage));
 
             #endregion Initialize Script Runtime
         }
@@ -168,15 +169,18 @@ namespace Intent
                 {
                     updateTimer = new Timer((state) =>
                     {
-                        // Call update functions
-                        foreach (KeyValuePair<MessageAdapter, FunctionObject> pair in updateFunctions)
+                        lock (updateFunctions)
                         {
-                            pair.Value.Call(pair.Key.CurrentSettings);
-                        }
+                            // Call update functions
+                            foreach (KeyValuePair<MessageAdapter, FunctionObject> pair in updateFunctions)
+                            {
+                                pair.Value.Call(pair.Key.CurrentSettings);
+                            }
 
-                        // Call global update timer
-                        var globalUpdate = script.GetGlobal("update");
-                        if (globalUpdate.IsFunction) globalUpdate.Func.Call(null);
+                            // Call global update timer
+                            var globalUpdate = script.GetGlobal("update");
+                            if (globalUpdate.IsFunction) globalUpdate.Func.Call(null);
+                        }
                         
                     }, null, 0, 25);
                 }
@@ -626,24 +630,10 @@ namespace Intent
             #region Bind Identifcation
 
             // Add the adapter name to the script settings object
-            if (!adapter.CurrentSettings.Members.ContainsKey("adapter"))
-            {
-                adapter.CurrentSettings.Members.Add("adapter", adapter.Name);
-            }
-            else
-            {
-                adapter.CurrentSettings.Members["adapter"] = adapter.Name;
-            }
+            adapter.CurrentSettings.Put("adapter", adapter.Name);
 
             // Add the adapter's unique instance ID to the script settings object
-            if (!adapter.CurrentSettings.Members.ContainsKey("id"))
-            {
-                adapter.CurrentSettings.Members.Add("id", adapter.Id);
-            }
-            else
-            {
-                adapter.CurrentSettings.Members["id"] = adapter.Id;
-            }
+            adapter.CurrentSettings.Put("id", adapter.Id);
 
             #endregion Bind Identifcation
 
