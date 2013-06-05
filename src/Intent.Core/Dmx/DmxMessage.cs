@@ -22,14 +22,29 @@ namespace Intent.Dmx
         public readonly int Value;
 
         /// <summary>
+        /// Gets the time at which the DMX message occured.
+        /// </summary>
+        public readonly DateTime Time;
+
+        /// <summary>
         /// Creates a DMX message for the given channel and value.
         /// </summary>
         /// <param name="channel">The DMX channel.</param>
         /// <param name="value">The channel value.</param>
-        public DmxMessage(int channel, int value)
+        public DmxMessage(int channel, int value) : this(channel, value, DateTime.UtcNow) { }
+        
+
+        /// <summary>
+        /// Creates a DMX message for the given channel and value.
+        /// </summary>
+        /// <param name="channel">The DMX channel.</param>
+        /// <param name="value">The channel value.</param>
+        /// <param name="time">The time at which the DMX message occured.</param>
+        public DmxMessage(int channel, int value, DateTime time)
         {
             Channel = channel;
             Value = value;
+            Time = time;
         }
     }
 }

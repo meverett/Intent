@@ -60,7 +60,9 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -70,7 +72,10 @@
   <ItemGroup>
     <Compile Include="Data\ColorRGB.cs" />
     <Compile Include="Dmx\DmxMessage.cs" />
+    <Compile Include="Input\InputAdapter.cs" />
+    <Compile Include="Input\InputToConsoleAdapter.cs" />
     <Compile Include="IntentRuntime.cs" />
+    <Compile Include="Kinect\KinectAdapter.cs" />
     <Compile Include="MessageAdapterInfo.cs" />
     <Compile Include="Midi\MidiDeviceInfo.cs" />
     <Compile Include="Osc\OscToDmxAdapter.cs" />

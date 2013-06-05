@@ -5,6 +5,7 @@ using System.Text;
 using System.Reflection;
 using System.Threading;
 using System.IO;
+using System.Windows.Forms;
 
 using IronJS;
 using IronJS.Hosting;
@@ -40,7 +41,7 @@ namespace Intent
         private static CSharp.Context script;
         
         // Used to call script update loops
-        static Timer updateTimer;
+        static System.Threading.Timer updateTimer;
 
         // List of adapter script udpate functions/callbacks
         static Dictionary<MessageAdapter, FunctionObject> updateFunctions = new Dictionary<MessageAdapter, FunctionObject>();
@@ -124,6 +125,7 @@ namespace Intent
             script.SetGlobal("print", Utils.CreateFunction<Action<BoxedValue>>(script.Environment, 1, _Print));
             script.SetGlobal("addAdapter", Utils.CreateFunction<Func<string, CommonObject, BoxedValue>>(script.Environment, 2, _AddAdapter));
             script.SetGlobal("sendMessage", Utils.CreateFunction<Action<BoxedValue, CommonObject>>(script.Environment, 2, MessageAdapter._SendMessage));
+            script.SetGlobal("getMousePos", Utils.CreateFunction<Func<CommonObject>>(script.Environment, 0, _GetMousePosition));
 
             #endregion Initialize Script Runtime
         }
@@ -156,7 +158,7 @@ namespace Intent
                         var members = adapter.CurrentSettings.Members;
 
                         // If the update function exists, add it to the list
-                        if (members.ContainsKey("update") &&members["update"] is FunctionObject)
+                        if (members.ContainsKey("update") && members["update"] is FunctionObject)
                             updateFunctions.Add(adapter, (FunctionObject)members["update"]);
                     }
 
@@ -167,7 +169,7 @@ namespace Intent
                 // Start the update functions
                 if (updateFunctions.Count > 0 || script.GetGlobal("update").IsFunction)
                 {
-                    updateTimer = new Timer((state) =>
+                    updateTimer = new System.Threading.Timer((state) =>
                     {
                         lock (updateFunctions)
                         {
@@ -182,7 +184,7 @@ namespace Intent
                             if (globalUpdate.IsFunction) globalUpdate.Func.Call(null);
                         }
                         
-                    }, null, 0, 25);
+                    }, null, 0, 22);
                 }
 
                 IsRunning = true;
@@ -211,9 +213,9 @@ namespace Intent
                 IsRunning = false;
                 WriteLine("Intent Messaging => Stopped");
             }
+
             // Notify
             if (Stopped != null) Stopped(null, EventArgs.Empty);
-
         }
 
         #endregion Operation
@@ -638,6 +640,23 @@ namespace Intent
             #endregion Bind Identifcation
 
             return TypeConverter.ToBoxedValue(true);
+        }
+
+        // script: getMousePos()
+        static CommonObject _GetMousePosition()
+        {
+            // Get mouse position
+            var position = Cursor.Position;
+
+            // Create the outgoing object
+            var pos = new CommonObject(script.Environment, null);
+
+            // Set the mouse values
+            pos.Put("x", position.X);
+            pos.Put("y", position.Y);
+
+            // Return it
+            return pos;
         }
 
         #endregion Global Functions

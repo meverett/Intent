@@ -1,7 +1,8 @@
 ﻿// Global adapter names/identities
 var adapters = {
     midiToConsole:  "MIDI to Console",  midiToOsc:  "MIDI to OSC",
-    oscToConsole:   "OSC to Console",   oscToDmx:   "OSC to DMX"
+    oscToConsole:   "OSC to Console",   oscToDmx: "OSC to DMX",
+    inputToConsole: "Input to Console"
 };
 
 // Different color modes
@@ -18,7 +19,7 @@ var lights = {
     ],
     // Blizzard Q12+ Puck Lights
     pucks: [
-        new PuckQ12(4), new PuckQ12(5), new PuckQ12(6), new PuckQ12(7),
+        new PuckQ12(4), new PuckQ12(5), new PuckQ12(6), new PuckQ12(7), new PuckQ12(8), new PuckQ12(9)
     ],
 
     // Master light intensity
@@ -29,21 +30,22 @@ var lights = {
 
     // Different control groups of lighting channels/fixtures
     groups: [
-        [1, 2, 3, 4, 5, 6, 7, 8],   // 1  all lights
-        [1, 2, 5, 6],               // 2  left
-        [3, 4, 7, 8],               // 3  right
-        [5, 6, 7, 8],               // 4  top
-        [1, 2, 3, 4],               // 5  bottom
-        [3, 4, 5, 6],               // 6  top left, bottom right
-        [1, 2, 7, 8],               // 7  bottom left, top right
-        [1, 3],                     // 8  bottom 1st & 3rd
-        [2, 4],                     // 9  bottom 2nd & 4th
-        [5, 7],                     // 10 top 1st and 3rd
-        [6, 8],                     // 11 top 2nd and 4th
-        [1, 4],                     // 12 bottom 1st and 4th
-        [2, 3],                     // 13 bottom 2nd and 3rd
-        [5, 8],                     // 14 top 1st and 4th
-        [6, 7],                     // 15 top 2nd and 3rd
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],    // 1  all lights
+        [1, 2, 5, 6],                       // 2  left
+        [3, 4, 7, 8],                       // 3  right
+        [5, 6, 7, 8],                       // 4  top
+        [1, 2, 3, 4],                       // 5  bottom left/right
+        [9, 10],                            // 6  bottom center
+        [3, 4, 5, 6],                       // 7  top left, bottom right
+        [1, 2, 7, 8],                       // 8  bottom left, top right
+        [1, 3],                             // 9  bottom 1st & 3rd
+        [2, 4],                             // 10  bottom 2nd & 4th
+        [5, 7],                             // 11 top 1st and 3rd
+        [6, 8],                             // 12 top 2nd and 4th
+        [1, 4],                             // 13 bottom 1st and 4th
+        [2, 3],                             // 14 bottom 2nd and 3rd
+        [5, 8],                             // 15 top 1st and 4th
+        [6, 7],                             // 16 top 2nd and 3rd
     ],  
 };
 
@@ -183,13 +185,13 @@ var updateFromCC = function (type, channel, cc, value) {
                     state.channel.push(light.dmx("w"));
 
                     // Add RGB values
-                    state.value.push(parseInt(light.a * light.v * lights.master));
-                    state.value.push(parseInt(light.w * light.v * lights.master));
+                    state.value.push(parseInt(light.a * lights.master));
+                    state.value.push(parseInt(light.w * lights.master));
                 }
                 // Update amber OR white
                 else {
                     state.channel.push(cc == CC.a ? light.dmx("a") : light.dmx("w"));
-                    state.value.push(parseInt((cc == CC.a ? light.a : light.w) * light.v * lights.master));
+                    state.value.push(parseInt((cc == CC.a ? light.a : light.w) * lights.master));
                 }
             }
         }

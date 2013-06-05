@@ -31,6 +31,12 @@ namespace Intent.Osc
         // The max DMX channel being used
         int maxChannel = 0;
 
+        // Internal DMX buffer - index = DMX channel -1, value = DMX channel value
+        DmxMessage[] dmxBuffer;
+
+        // Maximum number of DMX channels to address
+        const int DMX_MAX_CHANNELS = 512;
+
         /// <summary>
         /// A list of setup messages to send once upon contact with the DMX controller.
         /// </summary>
@@ -57,8 +63,13 @@ namespace Intent.Osc
         /// </summary>
         public OscToDmxAdapter()
         {
+            // Init internal DMX buffer/channel states
+            dmxBuffer = new DmxMessage[DMX_MAX_CHANNELS];
+            ClearDmxBuffer();
+
             port = new SerialPort();
             port.BaudRate = 250000;
+            //port.BaudRate = 31250;
             port.DataReceived += port_DataReceived;
         }
 
@@ -71,25 +82,32 @@ namespace Intent.Osc
         // Handles data received by the DMX serial port
         void port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            string value = port.ReadLine().Trim();
-
-            //Intent.WriteLine(value);
-
-            switch (value)
+            while (port.IsOpen && port.BytesToRead > 0)
             {
-                // The other side was reset, so send setup info
-                case "setup":
-                    // Write out the max DMX Channel
-                    byte[] buffer = GetMsbLsb(54);
-                    port.Write(buffer, 0, buffer.Length);
+                string value = port.ReadLine().Trim();
 
-                    // Notify
-                    TriggerMessageSent();
+                //Intent.WriteLine(value);
 
-                    // Send out any DMX-specific setup requests
-                    ApplySetupMessages();
+                switch (value)
+                {
+                    // The other side was reset, so send setup info
+                    case "setup":
+                        // Write out the max DMX Channel
+                        byte[] buffer = GetMsbLsb(maxChannel);
+                        port.Write(buffer, 0, buffer.Length);
 
-                    break;
+                        // Notify
+                        TriggerMessageSent();
+
+                        // Send out any DMX-specific setup requests
+                        ApplySetupMessages();
+
+                        break;
+
+                    default:
+                        IntentRuntime.WriteLine(value);
+                        break;
+                }
             }
         }
 
@@ -188,6 +206,9 @@ namespace Intent.Osc
             // Nothing to do we're already running
             if (port != null && port.IsOpen) return;
 
+            // Clear the internal DMX state buffer
+            ClearDmxBuffer();
+
             // Get the DMX port from script settings or use default
             var members = CurrentSettings != null ? CurrentSettings.Members : null;
             dmxPort = members != null && members.ContainsKey("serial") ? (string)members["serial"] : "COM3";
@@ -260,12 +281,33 @@ namespace Intent.Osc
         // Writes a value to a specified DMX channel
         void WriteDmx(int channel, int value)
         {
-            var channelBuffer = GetMsbLsb(channel);
-            byte[] buffer = new byte[] { channelBuffer[0], channelBuffer[1], (byte)(value & 0xff) };
-            port.Write(buffer, 0, buffer.Length);
+            //var channelBuffer = GetMsbLsb(channel);
+            //byte[] buffer = new byte[] { channelBuffer[0], channelBuffer[1], (byte)(value & 0xff) };
 
-            // Notify
-            TriggerMessageSent();
+            // Go from DMX channel to 0 indexed channel
+            channel--;
+
+            // Make sure the channel is in range
+            if (channel < 0 || channel >= DMX_MAX_CHANNELS) return;
+            
+            // Make sure the value is in range
+            if (value < 0) value = 0;
+            else if (value > 255) value = 255;
+
+            // Make sure the value has actually changed before sending it
+            double elapsed = (DateTime.UtcNow - dmxBuffer[channel].Time).TotalMilliseconds;
+            if (dmxBuffer[channel].Value != value && (value == 0 || value == 255 || elapsed >= 0))
+            {
+                // Send the new value
+                byte[] buffer = new byte[] { (byte)(channel & 0xff), (byte)(value & 0xff) };
+                port.Write(buffer, 0, buffer.Length);
+
+                // Update the buffer to the new value for the DMX channel
+                dmxBuffer[channel] = new DmxMessage(channel + 1, value);
+
+                // Notify
+                TriggerMessageSent();
+            }
         }
 
         // Splits an INT into a 2 byte MSB + LSB byte buffer
@@ -315,6 +357,12 @@ namespace Intent.Osc
         #endregion Settings
 
         #region Utilities
+
+        // Resets the values of the internal DMX channel value buffer
+        void ClearDmxBuffer()
+        {
+            for (int i = 0; i < dmxBuffer.Length; i++) dmxBuffer[i] = new DmxMessage(i + 1, -1);
+        }
 
         // HSV -> RGB conversion
         ColorRGB HSVtoRGB (float h, float s, float v)
